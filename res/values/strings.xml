@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">App Levels</string>
+    <string name="menu_settings">Settings</string>
+    <string name="run_service">AppLevels Service</string>
+    <string name="application_icon">Application Icon</string>
+
+</resources>
