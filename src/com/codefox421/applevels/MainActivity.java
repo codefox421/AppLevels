@@ -114,6 +114,10 @@ public class MainActivity extends Activity {
     	
     	// Retrieve the cursor
     	cursor = datasource.GetAppVolumes();
+    	if(cursor == null) {
+    		packageList = null;
+    		return;
+    	}
     	
     	while(!cursor.isAfterLast()) {
     		

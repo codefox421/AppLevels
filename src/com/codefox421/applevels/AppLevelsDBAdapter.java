@@ -40,7 +40,7 @@ public class AppLevelsDBAdapter {
 	 *   volume
 	 */
 	
-	public boolean updateAppVolume(String packageName, String volumeLevel) {
+	public boolean updateAppVolume(String packageName, int volumeLevel) {
 		
 		// Compile values
 		ContentValues valuesToUpdate = new ContentValues();
@@ -56,10 +56,16 @@ public class AppLevelsDBAdapter {
 	
 	
 	public int getAppVolume(String packageName) throws SQLException {
+		// Values less than 0 indicate an error
 		
 		// Query the database
-		Cursor mCursor = database.query(true, VOLUME_TABLE, new String[] { KEY_VOLUME },
+		Cursor mCursor;
+		try {
+			mCursor = database.query(true, VOLUME_TABLE, new String[] { KEY_VOLUME },
 				KEY_PACKAGE + "=" + packageName, null, null, null, null, null);
+		} catch(Exception e) {
+			return -1;		//query error
+		}
 		
 		// Verify cursor and extract value
 		if (mCursor != null) {
@@ -68,8 +74,7 @@ public class AppLevelsDBAdapter {
 			return value;
 		}
 		
-		// Values less than 0 indicate an error
-		return -1;
+		return -2;		//null cursor error
 	}
 	
 	
