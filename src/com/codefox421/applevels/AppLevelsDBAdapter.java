@@ -5,13 +5,13 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteException;
+import android.util.Log;
 
 public class AppLevelsDBAdapter {
 
 	// Database fields
-	private static final String VOLUME_TABLE = "volume_records";
-	public static final String KEY_PACKAGE = "package";
-	public static final String KEY_VOLUME = "volume";
+	private static final String LOG_TAG = "AppLevelsDBAdap";
 	private Context context;
 	private SQLiteDatabase database;
 	private AppLevelsDBHelper dbHelper;
@@ -44,14 +44,29 @@ public class AppLevelsDBAdapter {
 		
 		// Compile values
 		ContentValues valuesToUpdate = new ContentValues();
-		valuesToUpdate.put(KEY_VOLUME, volumeLevel);
+		valuesToUpdate.put(AppLevelsDBHelper.KEY_PACKAGE, packageName);
+		valuesToUpdate.put(AppLevelsDBHelper.KEY_VOLUME, volumeLevel);
 		
 		// Write to database
-		boolean updateSucceeded = database.update(VOLUME_TABLE, valuesToUpdate,
-				KEY_PACKAGE + "=" + packageName, null) > 0;
-		if(updateSucceeded)
-			return true;
-		return database.insert(VOLUME_TABLE, null, valuesToUpdate) != -1;
+		boolean updateSucceeded = false;
+		try {
+			Cursor mCursor = database.query(true, AppLevelsDBHelper.VOLUME_TABLE, new String[] { AppLevelsDBHelper.KEY_ID },
+					AppLevelsDBHelper.KEY_PACKAGE + "=" + packageName, null, null, null, null, null);
+			mCursor.moveToFirst();
+			int _id = mCursor.getInt(mCursor.getColumnIndex(AppLevelsDBHelper.KEY_ID));
+			Log.d(LOG_TAG, "ID for " + packageName + " is " + _id);
+			updateSucceeded = database.update(AppLevelsDBHelper.VOLUME_TABLE, valuesToUpdate,
+					AppLevelsDBHelper.KEY_ID + "=" + _id, null) > 0;
+		} catch(SQLiteException ex_up) {
+			Log.w(LOG_TAG, "Could not update volume record for " + packageName + "\nAttempting new entry...");
+			try {
+				updateSucceeded = database.insertOrThrow(AppLevelsDBHelper.VOLUME_TABLE, null, valuesToUpdate) != -1;
+			} catch(SQLiteException ex_in) {
+				//well damn, it failed twice
+				Log.e(LOG_TAG, "SQLite error while inserting new record for " + packageName);
+			}
+		}
+		return updateSucceeded;
 	}
 	
 	
@@ -61,15 +76,17 @@ public class AppLevelsDBAdapter {
 		// Query the database
 		Cursor mCursor;
 		try {
-			mCursor = database.query(true, VOLUME_TABLE, new String[] { KEY_VOLUME },
-				KEY_PACKAGE + "=" + packageName, null, null, null, null, null);
-		} catch(Exception e) {
+			mCursor = database.query(true, AppLevelsDBHelper.VOLUME_TABLE, new String[] { AppLevelsDBHelper.KEY_VOLUME },
+					AppLevelsDBHelper.KEY_PACKAGE + "=" + packageName, null, null, null, null, null);
+		} catch(SQLiteException ex) {
 			return -1;		//query error
+		} catch(Exception ex) {
+			return -3;		//unknown error
 		}
 		
 		// Verify cursor and extract value
 		if (mCursor != null) {
-			int value = mCursor.getInt(mCursor.getColumnIndex(KEY_VOLUME));
+			int value = mCursor.getInt(mCursor.getColumnIndex(AppLevelsDBHelper.KEY_VOLUME));
 			mCursor.close();
 			return value;
 		}
@@ -81,8 +98,13 @@ public class AppLevelsDBAdapter {
 	public Cursor GetAppVolumes() throws SQLException {
 		
 		// Query the database
-		Cursor mCursor = database.query(VOLUME_TABLE, new String[] { KEY_PACKAGE, KEY_VOLUME },
-				null, null, null, null, null);
+		Cursor mCursor;
+		try {
+			mCursor = database.query(AppLevelsDBHelper.VOLUME_TABLE, new String[] { AppLevelsDBHelper.KEY_PACKAGE, AppLevelsDBHelper.KEY_VOLUME },
+					null, null, null, null, null);
+		} catch(SQLiteException ex) {
+			return null;
+		}
 		
 		// Verify cursor
 		if (mCursor != null) {
@@ -95,6 +117,12 @@ public class AppLevelsDBAdapter {
 	
 	public boolean deleteAppVolume(String packageName) {
 		
-		return database.delete(VOLUME_TABLE, KEY_PACKAGE + "=" + packageName, null) > 0;
+		boolean deleteSucceeded = false;
+		try {
+			deleteSucceeded = database.delete(AppLevelsDBHelper.VOLUME_TABLE, AppLevelsDBHelper.KEY_PACKAGE + "=" + packageName, null) > 0;
+		} catch(SQLiteException ex) {
+			
+		}
+		return deleteSucceeded;
 	}
 }

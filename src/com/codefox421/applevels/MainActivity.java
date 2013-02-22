@@ -49,16 +49,16 @@ public class MainActivity extends Activity {
                 LayoutParams.WRAP_CONTENT));
         progressBar.setIndeterminate(true);
         managedAppsList.setEmptyView(progressBar);
-        
+        /*
         // Create list of managed applications
         packageList = new ArrayList<ManagedPackage>();
         fillData();
         
         // Create and attach the adapter
-        if(!packageList.isEmpty()) {
+        if(packageList != null && !packageList.isEmpty()) {
 	        ManagedAppAdapter appAdapter = new ManagedAppAdapter(this, R.layout.managed_app, packageList.toArray(packageArrayTemplate));
 	        managedAppsList.setAdapter(appAdapter);
-        }
+        }*/
     }
 
     
@@ -124,16 +124,16 @@ public class MainActivity extends Activity {
     		// Retrieve application icon
     		Drawable appIcon;
     		try {
-    			appIcon = packageManager.getApplicationIcon(cursor.getString(cursor.getColumnIndex(AppLevelsDBAdapter.KEY_PACKAGE)));
+    			appIcon = packageManager.getApplicationIcon(cursor.getString(cursor.getColumnIndex(AppLevelsDBHelper.KEY_PACKAGE)));
     		} catch(Exception exception) {
     			appIcon = getResources().getDrawable(R.drawable.default_app);
     		}
     		
     		// Retrieve package name
-    		String packageName = cursor.getString(cursor.getColumnIndex(AppLevelsDBAdapter.KEY_PACKAGE));
+    		String packageName = cursor.getString(cursor.getColumnIndex(AppLevelsDBHelper.KEY_PACKAGE));
     		
     		// Retrieve volume level
-    		int volumeLevel = cursor.getInt(cursor.getColumnIndex(AppLevelsDBAdapter.KEY_VOLUME));
+    		int volumeLevel = cursor.getInt(cursor.getColumnIndex(AppLevelsDBHelper.KEY_VOLUME));
     		
     		packageList.add(new ManagedPackage(packageName, appIcon, volumeLevel));
     		

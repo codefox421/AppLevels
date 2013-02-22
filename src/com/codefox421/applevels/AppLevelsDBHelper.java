@@ -7,14 +7,22 @@ import android.util.Log;
 
 public class AppLevelsDBHelper extends SQLiteOpenHelper {
 	
+	public static final String LOG_TAG = "AppLevelsDBHelp";
+	public static final String VOLUME_TABLE = "volume_records";
+	public static final String KEY_ID = "id";
+	public static final String KEY_PACKAGE = "package";
+	public static final String KEY_VOLUME = "volume";
+	
 	private static final String DATABASE_NAME = "applevels_appdata";
 
 	private static final int DATABASE_VERSION = 1;
 
 	
 	// Create database for volume levels
-	private static final String VOLUME_DB_CREATE = "create table volume_records ("
-			+ "package text not null primary key, volume integer not null);";
+	private static final String VOLUME_DB_CREATE = "create table " + VOLUME_TABLE + " ("
+			+ KEY_ID + " integer not null primary key autoincrement, "
+			+ KEY_PACKAGE + " text not null, "
+			+ KEY_VOLUME + " integer not null);";
 
 
 	// Constructor

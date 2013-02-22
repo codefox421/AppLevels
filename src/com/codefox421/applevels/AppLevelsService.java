@@ -50,6 +50,9 @@ public class AppLevelsService extends Service {
 		audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
 		activityManager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
 		
+		database = new AppLevelsDBAdapter(this);
+		database.open();
+		
 		Log.d(LOG_TAG, "onCreate method complete");
 	}
 	
@@ -67,6 +70,8 @@ public class AppLevelsService extends Service {
 		lastPackage = getFrontPackage();
 		scheduleAppSniffing();		//start sniffing for launched applications
 		
+		database.open();
+		
 		Log.d(LOG_TAG, "onStart method complete");
 	}
 	
@@ -81,6 +86,8 @@ public class AppLevelsService extends Service {
 		notificationManager.cancel(NOTIF_TAG, NOTIF_ID);		//close the active notification
 		
 		timer.cancel();		//stop sniffing for launched applications
+		
+		database.close();
 		
 		Toast.makeText(this, "AppLevelsService Stopped", Toast.LENGTH_SHORT).show();
 		
@@ -106,7 +113,8 @@ public class AppLevelsService extends Service {
     	
     	// Write new record to the database
     	Log.d(LOG_TAG, "Recording volume level (" + currentVolume + ") for " + packageName + "...");
-    	database.updateAppVolume(packageName, currentVolume);
+    	boolean result = database.updateAppVolume(packageName, currentVolume);
+    	Log.d(LOG_TAG, "Data " + ((result) ? "written to database successfully!" : "not written to database."));
     	
     	// Update volume tracker
     	lastVolume = currentVolume;
@@ -132,7 +140,7 @@ public class AppLevelsService extends Service {
 		
 		public void run() {
 			
-			Log.d(LOG_TAG, "TimerTask run start");
+//			Log.d(LOG_TAG, "TimerTask run start");
 			
 			String currentPackage = getFrontPackage();
 			if(!currentPackage.equalsIgnoreCase(lastPackage)) {
@@ -143,18 +151,20 @@ public class AppLevelsService extends Service {
 				lastPackage = currentPackage;
 			}
 			
-			Log.d(LOG_TAG, "TimerTask run complete");
+//			Log.d(LOG_TAG, "TimerTask run complete");
 		}
 	}
 	
 	private void initAppVolume(String packageName) {
 		
-		Log.d(LOG_TAG, "Initializing App Volume...");
+		Log.d(LOG_TAG, "Initializing App Volume for " + packageName + "...");
 		
 		// Retrieve the stored value
 		int storedLevel = database.getAppVolume(packageName);
-		if(storedLevel < 0)
+		if(storedLevel < 0) {
+			Log.d(LOG_TAG, "No record exists for " + packageName);
 			return;
+		}
 		
 		Log.d(LOG_TAG, "Volume to be set to " + storedLevel + ".");
 		
