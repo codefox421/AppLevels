@@ -44,22 +44,17 @@ public class AppLevelsDBAdapter {
 		
 		// Compile values
 		ContentValues valuesToUpdate = new ContentValues();
-		valuesToUpdate.put(AppLevelsDBHelper.KEY_PACKAGE, packageName);
 		valuesToUpdate.put(AppLevelsDBHelper.KEY_VOLUME, volumeLevel);
 		
 		// Write to database
 		boolean updateSucceeded = false;
 		try {
-			Cursor mCursor = database.query(true, AppLevelsDBHelper.VOLUME_TABLE, new String[] { AppLevelsDBHelper.KEY_ID },
-					AppLevelsDBHelper.KEY_PACKAGE + "=" + packageName, null, null, null, null, null);
-			mCursor.moveToFirst();
-			int _id = mCursor.getInt(mCursor.getColumnIndex(AppLevelsDBHelper.KEY_ID));
-			Log.d(LOG_TAG, "ID for " + packageName + " is " + _id);
 			updateSucceeded = database.update(AppLevelsDBHelper.VOLUME_TABLE, valuesToUpdate,
-					AppLevelsDBHelper.KEY_ID + "=" + _id, null) > 0;
+					AppLevelsDBHelper.KEY_PACKAGE + "='" + packageName + "'", null) > 0;
 		} catch(SQLiteException ex_up) {
 			Log.w(LOG_TAG, "Could not update volume record for " + packageName + "\nAttempting new entry...");
 			try {
+				valuesToUpdate.put(AppLevelsDBHelper.KEY_PACKAGE, packageName);
 				updateSucceeded = database.insertOrThrow(AppLevelsDBHelper.VOLUME_TABLE, null, valuesToUpdate) != -1;
 			} catch(SQLiteException ex_in) {
 				//well damn, it failed twice
@@ -77,7 +72,7 @@ public class AppLevelsDBAdapter {
 		Cursor mCursor;
 		try {
 			mCursor = database.query(true, AppLevelsDBHelper.VOLUME_TABLE, new String[] { AppLevelsDBHelper.KEY_VOLUME },
-					AppLevelsDBHelper.KEY_PACKAGE + "=" + packageName, null, null, null, null, null);
+					AppLevelsDBHelper.KEY_PACKAGE + "='" + packageName + "'", null, null, null, null, null);
 		} catch(SQLiteException ex) {
 			return -1;		//query error
 		} catch(Exception ex) {
@@ -119,7 +114,7 @@ public class AppLevelsDBAdapter {
 		
 		boolean deleteSucceeded = false;
 		try {
-			deleteSucceeded = database.delete(AppLevelsDBHelper.VOLUME_TABLE, AppLevelsDBHelper.KEY_PACKAGE + "=" + packageName, null) > 0;
+			deleteSucceeded = database.delete(AppLevelsDBHelper.VOLUME_TABLE, AppLevelsDBHelper.KEY_PACKAGE + "='" + packageName + "'", null) > 0;
 		} catch(SQLiteException ex) {
 			
 		}
