@@ -1,10 +1,13 @@
 package com.codefox421.applevels;
 
+import java.util.Calendar;
 import java.util.Timer;
 import java.util.TimerTask;
 
 import android.app.ActivityManager;
+import android.app.AlarmManager;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -30,8 +33,13 @@ public class AppLevelsService extends Service {
 	private int lastVolume;													// Stores last volume level to check against
 	private String lastPackage;												// Stores last running application to check against
 	private static AppLevelsDBAdapter database;								// DB access to applications' volume records
-	private static Timer timer;												// Timer for scheduled application sniffing
-	private static boolean databaseLocked = false;									// Lock for changing volume without affecting database
+	private AlarmManager alarmManager;										// Alarm Manager for scheduled application sniffing
+	private static PendingIntent operation;									// Pending Intent for use with Alarm Manager
+	private static AlarmReceiver alarmReceiver;								// Alarm Receiver to help with application sniffing
+	private static final String ACTION_NAME = "com.codefox421.appsniffnow";	// 
+	private static IntentFilter  alarmFilter =
+			new IntentFilter(ACTION_NAME);									// 
+	private static boolean databaseLocked = false;							// Lock for changing volume without affecting database
 
 	
 	@Override
@@ -53,6 +61,10 @@ public class AppLevelsService extends Service {
 		database = new AppLevelsDBAdapter(this);
 		database.open();
 		
+		alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
+		operation = PendingIntent.getBroadcast(this, 0, new Intent(ACTION_NAME), PendingIntent.FLAG_UPDATE_CURRENT);
+		alarmReceiver = new AlarmReceiver();
+		
 		Log.d(LOG_TAG, "onCreate method complete");
 	}
 	
@@ -68,7 +80,9 @@ public class AppLevelsService extends Service {
 		lastVolume = getVolume();
 		
 		lastPackage = getFrontPackage();
-		scheduleAppSniffing();		//start sniffing for launched applications
+		alarmManager.set(AlarmManager.RTC, Calendar.getInstance()
+				.getTimeInMillis() + 1000, operation);
+		registerReceiver(alarmReceiver, alarmFilter);		//start sniffing for launched applications
 		
 		database.open();
 		
@@ -85,7 +99,8 @@ public class AppLevelsService extends Service {
 		
 		notificationManager.cancel(NOTIF_TAG, NOTIF_ID);		//close the active notification
 		
-		timer.cancel();		//stop sniffing for launched applications
+		alarmManager.cancel(operation);		//stop sniffing for launched applications
+		unregisterReceiver(alarmReceiver);
 		
 		database.close();
 		
@@ -131,27 +146,29 @@ public class AppLevelsService extends Service {
 
 	}
 	
-	private void scheduleAppSniffing() {
-		timer = new Timer("appSniffTimer", true);
-		timer.schedule(new appLaunchSniff(), 1000L, 1000L);
+	private class AlarmReceiver extends BroadcastReceiver {
+		
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			
+			compairPackages();
+			
+			alarmManager.set(AlarmManager.RTC, Calendar.getInstance()
+					.getTimeInMillis() + 1000, operation);		//continue sniffing for launched applications
+		}
 	}
 	
-	private class appLaunchSniff extends TimerTask {
+	private void compairPackages() {
 		
-		public void run() {
-			
-//			Log.d(LOG_TAG, "TimerTask run start");
-			
-			String currentPackage = getFrontPackage();
-			if(!currentPackage.equalsIgnoreCase(lastPackage)) {
+//		Log.d(LOG_TAG, "Compairing packages...");
+		
+		String currentPackage = getFrontPackage();
+		if(!currentPackage.equalsIgnoreCase(lastPackage)) {
 
-				// Set the media volume to stored level (if exists)
-				initAppVolume(currentPackage);
-				
-				lastPackage = currentPackage;
-			}
+			// Set the media volume to stored level (if exists)
+			initAppVolume(currentPackage);
 			
-//			Log.d(LOG_TAG, "TimerTask run complete");
+			lastPackage = currentPackage;
 		}
 	}
 	
@@ -167,7 +184,7 @@ public class AppLevelsService extends Service {
 		}
 		
 		Log.d(LOG_TAG, "Volume to be set to " + storedLevel + ".");
-		
+		/*
 		// Lock the database
 		databaseLocked = true;
 		
@@ -181,7 +198,7 @@ public class AppLevelsService extends Service {
 		
 		// Unlock the database
 		databaseLocked = false;
-		
+		*/
 		Log.d(LOG_TAG, "App Volume Initialized!");
 	}
 	

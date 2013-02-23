@@ -74,18 +74,22 @@ public class AppLevelsDBAdapter {
 			mCursor = database.query(true, AppLevelsDBHelper.VOLUME_TABLE, new String[] { AppLevelsDBHelper.KEY_VOLUME },
 					AppLevelsDBHelper.KEY_PACKAGE + "='" + packageName + "'", null, null, null, null, null);
 		} catch(SQLiteException ex) {
+			Log.e(LOG_TAG, "SQLite exception while querying " + packageName);
 			return -1;		//query error
 		} catch(Exception ex) {
+			Log.e(LOG_TAG, "Unknown exception while querying " + packageName);
 			return -3;		//unknown error
 		}
 		
 		// Verify cursor and extract value
-		if (mCursor != null) {
+		if (mCursor != null && mCursor.getCount() > 0) {
+			mCursor.moveToFirst();
 			int value = mCursor.getInt(mCursor.getColumnIndex(AppLevelsDBHelper.KEY_VOLUME));
 			mCursor.close();
 			return value;
 		}
 		
+		Log.w(LOG_TAG, "Received null cursor from query for " + packageName);
 		return -2;		//null cursor error
 	}
 	
@@ -98,6 +102,7 @@ public class AppLevelsDBAdapter {
 			mCursor = database.query(AppLevelsDBHelper.VOLUME_TABLE, new String[] { AppLevelsDBHelper.KEY_PACKAGE, AppLevelsDBHelper.KEY_VOLUME },
 					null, null, null, null, null);
 		} catch(SQLiteException ex) {
+			Log.e(LOG_TAG, "SQLite exception while querying packages.");
 			return null;
 		}
 		
@@ -106,6 +111,7 @@ public class AppLevelsDBAdapter {
 			mCursor.moveToFirst();
 		}
 		
+		Log.e(LOG_TAG, "Received mull cursor from querying for packages.");
 		return mCursor;
 	}
 	
@@ -116,7 +122,7 @@ public class AppLevelsDBAdapter {
 		try {
 			deleteSucceeded = database.delete(AppLevelsDBHelper.VOLUME_TABLE, AppLevelsDBHelper.KEY_PACKAGE + "='" + packageName + "'", null) > 0;
 		} catch(SQLiteException ex) {
-			
+			Log.e(LOG_TAG, "SQLite exception while deleting " + packageName);
 		}
 		return deleteSucceeded;
 	}
