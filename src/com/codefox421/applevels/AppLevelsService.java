@@ -217,6 +217,7 @@ public class AppLevelsService extends Service {
 			audioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_RAISE, 0);
 		while(getVolume() > storedLevel)
 			audioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_LOWER, 0);
+		lastVolume = getVolume();
 		
 		Log.d(LOG_TAG, "Volume adjusted to " + getVolume() + ".");
 		

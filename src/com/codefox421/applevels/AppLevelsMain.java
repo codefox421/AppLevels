@@ -26,6 +26,7 @@ package com.codefox421.applevels;
 import java.util.ArrayList;
 
 import android.R.drawable;
+import android.media.AudioManager;
 import android.os.Bundle;
 import android.app.Activity;
 import android.app.ActivityManager;
@@ -98,7 +99,9 @@ public class AppLevelsMain extends Activity {
     	super.onResume();
 		toggleButton.setChecked(isServiceRunning());
     	datasource.open();
-    	
+//    	AudioManager audioManager = ((AudioManager)getSystemService(AUDIO_SERVICE));
+//    	for(int i = 0; i < 15; i++)
+//    		audioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_RAISE, AudioManager.FLAG_SHOW_UI);
     }
     
     
