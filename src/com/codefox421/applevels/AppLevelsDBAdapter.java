@@ -73,6 +73,8 @@ public class AppLevelsDBAdapter {
 		try {
 			updateSucceeded = database.update(AppLevelsDBHelper.VOLUME_TABLE, valuesToUpdate,
 					AppLevelsDBHelper.KEY_PACKAGE + "='" + packageName + "'", null) > 0;
+			if ( !updateSucceeded )
+				throw new SQLiteException();
 		} catch(SQLiteException ex_up) {
 			Log.w(LOG_TAG, "Could not update volume record for " + packageName + "\nAttempting new entry...");
 			try {
@@ -131,9 +133,10 @@ public class AppLevelsDBAdapter {
 		// Verify cursor
 		if (mCursor != null) {
 			mCursor.moveToFirst();
+		} else {
+			Log.e(LOG_TAG, "Received mull cursor from querying for packages.");
 		}
 		
-		Log.e(LOG_TAG, "Received mull cursor from querying for packages.");
 		return mCursor;
 	}
 	

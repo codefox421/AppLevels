@@ -53,7 +53,7 @@ public class AppLevelsMain extends Activity {
 	AppLevelsDBAdapter datasource;
 	Cursor cursor;
 	ArrayList<ManagedPackage> packageList;
-	ManagedPackage packageArrayTemplate[];
+	ManagedPackage packageArrayTemplate[] = new ManagedPackage[1];
 
 	
     @Override
@@ -73,16 +73,6 @@ public class AppLevelsMain extends Activity {
                 LayoutParams.WRAP_CONTENT));
         progressBar.setIndeterminate(true);
         managedAppsList.setEmptyView(progressBar);
-        /*
-        // Create list of managed applications
-        packageList = new ArrayList<ManagedPackage>();
-        fillData();
-        
-        // Create and attach the adapter
-        if(packageList != null && !packageList.isEmpty()) {
-	        ManagedAppAdapter appAdapter = new ManagedAppAdapter(this, R.layout.managed_app, packageList.toArray(packageArrayTemplate));
-	        managedAppsList.setAdapter(appAdapter);
-        }*/
     }
 
     
@@ -102,6 +92,17 @@ public class AppLevelsMain extends Activity {
 //    	AudioManager audioManager = ((AudioManager)getSystemService(AUDIO_SERVICE));
 //    	for(int i = 0; i < 15; i++)
 //    		audioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_RAISE, AudioManager.FLAG_SHOW_UI);
+        
+        // Create list of managed applications
+        packageList = new ArrayList<ManagedPackage>();
+        fillData();
+        
+        // Create and attach the adapter
+        if(packageList != null && !packageList.isEmpty()) {
+        	ManagedPackage array[] = packageList.toArray(packageArrayTemplate);
+	        ManagedAppAdapter appAdapter = new ManagedAppAdapter(this, R.layout.managed_app, array);
+	        managedAppsList.setAdapter(appAdapter);
+        }
     }
     
     

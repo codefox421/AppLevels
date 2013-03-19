@@ -135,7 +135,6 @@ public class AppLevelsService extends Service {
 	
 	
 	private void recordVolume() {
-		
 		// Check for database lock
 		if(databaseLocked)
 			return;
