@@ -38,7 +38,9 @@ will install AppLevels.
 ##Support
 
 While no support is guaranteed under the Apache License,
-submitting issues to the [repository][issues-link]
+submitting issues
+or feature requests
+to the [repository][issues-link]
 is encouraged.
 If you are a developer, whether novice or seasoned,
 contributing fixes to any open issues found there
