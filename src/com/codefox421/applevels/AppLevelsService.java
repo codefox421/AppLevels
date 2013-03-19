@@ -175,16 +175,16 @@ public class AppLevelsService extends Service {
 		@Override
 		public void onReceive(Context context, Intent intent) {
 			
-			compairPackages();
+			comparePackages();
 			
 			alarmManager.set(AlarmManager.RTC, Calendar.getInstance()
 					.getTimeInMillis() + 1000, operation);		//continue sniffing for launched applications
 		}
 	}
 	
-	private void compairPackages() {
+	private void comparePackages() {
 		
-//		Log.d(LOG_TAG, "Compairing packages...");
+//		Log.d(LOG_TAG, "Comparing packages...");
 		
 		String currentPackage = getFrontPackage();
 		if(!currentPackage.equalsIgnoreCase(lastPackage)) {
