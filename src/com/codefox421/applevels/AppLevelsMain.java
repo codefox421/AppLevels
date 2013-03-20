@@ -23,93 +23,54 @@
 
 package com.codefox421.applevels;
 
-import java.util.ArrayList;
-
-import android.R.drawable;
-import android.media.AudioManager;
 import android.os.Bundle;
+import android.app.ActionBar;
+import android.app.ActionBar.Tab;
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningServiceInfo;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.database.Cursor;
-import android.graphics.drawable.Drawable;
 import android.util.Log;
-import android.view.Gravity;
-import android.view.Menu;
 import android.view.View;
-import android.view.ViewGroup.LayoutParams;
-import android.widget.CompoundButton;
-import android.widget.ListView;
-import android.widget.ProgressBar;
 
 public class AppLevelsMain extends Activity {
 	
-	CompoundButton toggleButton;
-	ListView managedAppsList;
-	PackageManager packageManager;
-	AppLevelsDBAdapter datasource;
-	Cursor cursor;
-	ArrayList<ManagedPackage> packageList;
-	ManagedPackage packageArrayTemplate[] = new ManagedPackage[1];
 
 	
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        
-        toggleButton = (CompoundButton)findViewById(R.id.serviceToggleButton);
-        managedAppsList = (ListView)findViewById(R.id.managedAppsList);
-        packageManager = getPackageManager();
-        datasource = new AppLevelsDBAdapter(this);
-        datasource.open();
-    	
-    	// Create a progress bar to display while the list loads
-        ProgressBar progressBar = new ProgressBar(this);
-        progressBar.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT,
-                LayoutParams.WRAP_CONTENT));
-        progressBar.setIndeterminate(true);
-        managedAppsList.setEmptyView(progressBar);
-    }
+            	
+        // setup action bar for tabs
+        ActionBar actionBar = getActionBar();
+        actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
+        actionBar.setDisplayShowTitleEnabled(false);
 
-    
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.activity_main, menu);
-        return true;
+        Tab tab = actionBar.newTab()
+                .setText(R.string.managed_tab)
+                .setTabListener(new TabListener<FragmentManagedList>(
+                        this, "managed_list_view", FragmentManagedList.class));
+        actionBar.addTab(tab);
+        
+        tab = actionBar.newTab()
+        		.setText("Instructions")
+        		.setTabListener(new TabListener<FragmentInstructions>(
+        				this, "instructions_view", FragmentInstructions.class));
+        actionBar.addTab(tab);
     }
     
     
     @Override
     public void onResume() {
     	super.onResume();
-		toggleButton.setChecked(isServiceRunning());
-    	datasource.open();
-//    	AudioManager audioManager = ((AudioManager)getSystemService(AUDIO_SERVICE));
-//    	for(int i = 0; i < 15; i++)
-//    		audioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_RAISE, AudioManager.FLAG_SHOW_UI);
-        
-        // Create list of managed applications
-        packageList = new ArrayList<ManagedPackage>();
-        fillData();
-        
-        // Create and attach the adapter
-        if(packageList != null && !packageList.isEmpty()) {
-        	ManagedPackage array[] = packageList.toArray(packageArrayTemplate);
-	        ManagedAppAdapter appAdapter = new ManagedAppAdapter(this, R.layout.managed_app, array);
-	        managedAppsList.setAdapter(appAdapter);
-        }
+    	
     }
     
     
     @Override
     public void onPause() {
     	super.onPause();
-    	datasource.close();
     }
     
     
@@ -122,7 +83,7 @@ public class AppLevelsMain extends Activity {
     		startService(new Intent(AppLevelsMain.this, AppLevelsService.class));
     	}
     	
-    	toggleButton.setChecked(isServiceRunning());
+    	//toggleButton.setChecked(isServiceRunning());
     }
     
     
@@ -135,36 +96,5 @@ public class AppLevelsMain extends Activity {
         }
         return false;
     }
-    
-    
-    private void fillData() {
-    	
-    	// Retrieve the cursor
-    	cursor = datasource.GetAppVolumes();
-    	if(cursor == null) {
-    		packageList = null;
-    		return;
-    	}
-    	
-    	while(!cursor.isAfterLast()) {
-    		
-    		// Retrieve application icon
-    		Drawable appIcon;
-    		try {
-    			appIcon = packageManager.getApplicationIcon(cursor.getString(cursor.getColumnIndex(AppLevelsDBHelper.KEY_PACKAGE)));
-    		} catch(Exception exception) {
-    			appIcon = getResources().getDrawable(R.drawable.default_app);
-    		}
-    		
-    		// Retrieve package name
-    		String packageName = cursor.getString(cursor.getColumnIndex(AppLevelsDBHelper.KEY_PACKAGE));
-    		
-    		// Retrieve volume level
-    		int volumeLevel = cursor.getInt(cursor.getColumnIndex(AppLevelsDBHelper.KEY_VOLUME));
-    		
-    		packageList.add(new ManagedPackage(packageName, appIcon, volumeLevel));
-    		
-    		cursor.moveToNext();
-    	}
-    }
+
 }
