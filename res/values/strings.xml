@@ -5,5 +5,10 @@
     <string name="menu_settings">Settings</string>
     <string name="run_service">AppLevels Service</string>
     <string name="application_icon">Application Icon</string>
+    <string name="level_text">Level:</string>
+    <string name="package_name_placeholder">Package Name</string>
+    <string name="volume_level_placeholder">Volume Level</string>
+    <string name="managed_tab">Managed Apps</string>
+    <string name="ignored_tab">Ignored Apps</string>
 
 </resources>
