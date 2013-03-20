@@ -34,6 +34,7 @@ public class AppLevelsDBHelper extends SQLiteOpenHelper {
 	public static final String KEY_ID = "id";
 	public static final String KEY_PACKAGE = "_id";
 	public static final String KEY_VOLUME = "volume";
+	public static final String KEY_IGNORE = "ignore";
 	
 	private static final String DATABASE_NAME = "applevels_appdata";
 
@@ -43,7 +44,8 @@ public class AppLevelsDBHelper extends SQLiteOpenHelper {
 	// Create database for volume levels
 	private static final String VOLUME_DB_CREATE = "create table " + VOLUME_TABLE + " ("
 			+ KEY_PACKAGE + " text primary key, "
-			+ KEY_VOLUME + " integer not null);";
+			+ KEY_VOLUME + " integer not null,"
+			+ KEY_IGNORE + " integer);";
 
 
 	// Constructor

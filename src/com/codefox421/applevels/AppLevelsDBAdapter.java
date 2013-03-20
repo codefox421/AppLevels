@@ -95,7 +95,7 @@ public class AppLevelsDBAdapter {
 		// Query the database
 		Cursor mCursor;
 		try {
-			mCursor = database.query(true, AppLevelsDBHelper.VOLUME_TABLE, new String[] { AppLevelsDBHelper.KEY_VOLUME },
+			mCursor = database.query(true, AppLevelsDBHelper.VOLUME_TABLE, new String[] { AppLevelsDBHelper.KEY_VOLUME, },
 					AppLevelsDBHelper.KEY_PACKAGE + "='" + packageName + "'", null, null, null, null, null);
 		} catch(SQLiteException ex) {
 			Log.e(LOG_TAG, "SQLite exception while querying " + packageName);
@@ -119,12 +119,22 @@ public class AppLevelsDBAdapter {
 	
 	
 	public Cursor GetAppVolumes() throws SQLException {
+		return GetAppVolumes(null);
+	}
+	
+	public Cursor GetAppVolumes(boolean getIgnored) throws SQLException {
+		String where = (getIgnored ? "" : AppLevelsDBHelper.KEY_IGNORE + " is null or ")
+				+ AppLevelsDBHelper.KEY_IGNORE + "=" + (getIgnored ? "1" : "0");
+		return GetAppVolumes(where);
+	}
+	
+	public Cursor GetAppVolumes(String whereClause) throws SQLException {
 		
 		// Query the database
 		Cursor mCursor;
 		try {
 			mCursor = database.query(AppLevelsDBHelper.VOLUME_TABLE, new String[] { AppLevelsDBHelper.KEY_PACKAGE, AppLevelsDBHelper.KEY_VOLUME },
-					null, null, null, null, null);
+					whereClause, null, null, null, null);
 		} catch(SQLiteException ex) {
 			Log.e(LOG_TAG, "SQLite exception while querying packages.");
 			return null;
