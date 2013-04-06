@@ -41,13 +41,14 @@ public class AppLevelsMain extends SherlockFragmentActivity {
 	
 	private Tab managedTab;
 	private Tab ignoredTab;
-	private Tab instructTab;
+//	private Tab instructTab;
 	
-	
+	private MenuItem power;
 	
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        //Log.d("AppLevels:" + this.getClass().getSimpleName(), "onCreate");
             	
         // setup action bar for tabs
         ActionBar actionBar = getSupportActionBar();
@@ -69,22 +70,32 @@ public class AppLevelsMain extends SherlockFragmentActivity {
         actionBar.addTab(ignoredTab);
         
         // create and add the instructions tab
-        instructTab = actionBar.newTab()
-        		.setText("Instructions")
-        		.setTabListener(new TabListener<FragmentInstructions>(
-        				this, "instructions_view", FragmentInstructions.class));
-        actionBar.addTab(instructTab);
+//        instructTab = actionBar.newTab()
+//        		.setText("Instructions")
+//        		.setTabListener(new TabListener<FragmentInstructions>(
+//        				this, "instructions_view", FragmentInstructions.class));
+//        actionBar.addTab(instructTab);
     }
     
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
+    	//Log.d("AppLevels:" + this.getClass().getSimpleName(), "onCreateOptionsMenu");
+    	
+    	// inflate the menu
     	MenuInflater inflater = getSupportMenuInflater();
         inflater.inflate(R.menu.action_bar_menu, menu);
+        
+        // grab the power button
+        power = menu.findItem(R.id.power);
+        
+        //Log.d("AppLevels:" + this.getClass().getSimpleName(), "onCreateOptionsMenu (end)");
         return super.onCreateOptionsMenu(menu);
     }
     
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+    	//Log.d("AppLevels:" + this.getClass().getSimpleName(), "onOptionsItemSelected");
+    	
     	switch (item.getItemId()) {
     	case R.id.power:
     		toggleService(item);
@@ -97,17 +108,38 @@ public class AppLevelsMain extends SherlockFragmentActivity {
     
     @Override
     public void onResume() {
+    	//Log.d("AppLevels:" + this.getClass().getSimpleName(), "onResume");
+    	
+    	// update the power button
+		updatePowerButton();
+    	
     	super.onResume();
     }
     
     
     @Override
     public void onPause() {
+    	//Log.d("AppLevels:" + this.getClass().getSimpleName(), "onPause");
     	super.onPause();
     }
     
     
+    private void updatePowerButton() {
+    	//Log.d("AppLevels:" + this.getClass().getSimpleName(), "updatePowerButton");
+    	
+    	if ( power != null ) {
+    		power.setIcon(
+    			isServiceRunning()
+    				? R.drawable.ic_action_power_on
+    				: R.drawable.ic_action_power_off
+    		);
+    	}
+    }
+    
+    
     public void toggleService(MenuItem item) {
+    	//Log.d("AppLevels:" + this.getClass().getSimpleName(), "toggleService");
+    	
     	if(isServiceRunning()) {
     		Log.d("AppLevels", "Stopping Service...");
     		stopService(new Intent(AppLevelsMain.this, AppLevelsService.class));
@@ -116,12 +148,13 @@ public class AppLevelsMain extends SherlockFragmentActivity {
     		startService(new Intent(AppLevelsMain.this, AppLevelsService.class));
     	}
     	
-    	item.setIcon(isServiceRunning() ? R.drawable.ic_action_power_on : R.drawable.ic_action_power_off);
-    	//toggleButton.setChecked(isServiceRunning());
+    	updatePowerButton();
     }
     
     
     private boolean isServiceRunning() {
+    	//Log.d("AppLevels:" + this.getClass().getSimpleName(), "isServiceRunning");
+    	
         ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
         for (RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
             if (AppLevelsService.class.getName().equals(service.service.getClassName())) {

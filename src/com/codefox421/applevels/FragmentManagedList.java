@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import com.actionbarsherlock.app.SherlockFragment;
 import android.app.Activity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -44,18 +45,21 @@ public class FragmentManagedList extends SherlockFragment {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		//Log.d("AppLevels:" + this.getClass().getSimpleName(), "onCreate");
 		self = getActivity();
 		datasource = new AppLevelsDBAdapter(self.getApplicationContext());
 	}
 		
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+		//Log.d("AppLevels:" + this.getClass().getSimpleName(), "onCreateView");
 		return inflater.inflate(R.layout.apps_list, container, false);
 	}
 	
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
+		//Log.d("AppLevels:" + this.getClass().getSimpleName(), "onActivityCreated");
 		managedAppsList = (ListView)self.findViewById(R.id.managedAppsList);
         
 		// Create a progress bar to display while the list loads

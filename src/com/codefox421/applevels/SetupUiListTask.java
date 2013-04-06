@@ -27,6 +27,7 @@ import android.app.Activity;
 import android.database.Cursor;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
+import android.util.Log;
 import android.widget.ListView;
 
 public class SetupUiListTask extends AsyncTask<Object, Void, ManagedAppAdapter> {
@@ -38,6 +39,7 @@ public class SetupUiListTask extends AsyncTask<Object, Void, ManagedAppAdapter> 
 
 	@Override
 	protected ManagedAppAdapter doInBackground(Object... params) {
+		//Log.d("AppLevels:" + this.getClass().getSimpleName(), "doInBackground");
 		
 		self = (Activity)params[0];
 		
@@ -66,6 +68,7 @@ public class SetupUiListTask extends AsyncTask<Object, Void, ManagedAppAdapter> 
 
 	@Override
 	protected void onPostExecute(ManagedAppAdapter result) {
+		//Log.d("AppLevels:" + this.getClass().getSimpleName(), "onPostExecute");
 		
 		if(result != null)
 			managedAppsList.setAdapter(result);
@@ -73,6 +76,7 @@ public class SetupUiListTask extends AsyncTask<Object, Void, ManagedAppAdapter> 
 	}
 	
 	private void fillData(AppLevelsDBAdapter datasource, Boolean getIgnored) {
+		//Log.d("AppLevels:" + this.getClass().getSimpleName(), "fillData");
     	
     	// Retrieve the cursor
     	Cursor cursor = datasource.GetAppVolumes(getIgnored);
@@ -103,6 +107,8 @@ public class SetupUiListTask extends AsyncTask<Object, Void, ManagedAppAdapter> 
     		
     		cursor.moveToNext();
     	}
+    	
+    	//Log.d("AppLevels:" + this.getClass().getSimpleName(), "fillData (end)");
     }
 	
 }

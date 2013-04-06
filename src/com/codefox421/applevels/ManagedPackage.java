@@ -22,6 +22,7 @@
 package com.codefox421.applevels;
 
 import android.graphics.drawable.Drawable;
+import android.util.Log;
 
 public class ManagedPackage {
 
@@ -30,6 +31,7 @@ public class ManagedPackage {
 	private int packageVolume;
 	
 	public ManagedPackage(String packageName, Drawable packageIcon, int packageVolume) {
+		//Log.d("AppLevels:" + this.getClass().getSimpleName(), "ctor");
 		this.packageName = packageName;
 		this.packageIcon = packageIcon;
 		this.packageVolume = packageVolume;

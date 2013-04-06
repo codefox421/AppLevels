@@ -23,6 +23,7 @@
 package com.codefox421.applevels;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -39,13 +40,16 @@ public class ManagedAppAdapter extends ArrayAdapter<ManagedPackage> {
 	public ManagedAppAdapter(Context context, int layoutResourceId,
 			ManagedPackage[] data) {
 		super(context, layoutResourceId, data);
+		//Log.d("AppLevels:" + this.getClass().getSimpleName(), "ctor");
 		this.layoutResourceId = layoutResourceId;
 		this.context = context;
 		this.data = data;
+		//Log.d("AppLevels:" + this.getClass().getSimpleName(), "ctor (end)");
 	}
 	
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent) {
+		//Log.d("AppLevels:" + this.getClass().getSimpleName(), "getView");
 		View row = convertView;
 		PackageHolder packageHolder = null;
 		

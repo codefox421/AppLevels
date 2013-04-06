@@ -5,6 +5,7 @@ import com.actionbarsherlock.app.ActionBar.Tab;
 import android.app.Activity;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
+import android.util.Log;
 
 public class TabListener<T extends Fragment> implements ActionBar.TabListener {
     private Fragment mFragment;
@@ -18,6 +19,7 @@ public class TabListener<T extends Fragment> implements ActionBar.TabListener {
       * @param clz  The fragment's Class, used to instantiate the fragment
       */
     public TabListener(Activity activity, String tag, Class<T> clz) {
+    	//Log.d("AppLevels:" + this.getClass().getSimpleName(), "ctor");
         mActivity = activity;
         mTag = tag;
         mClass = clz;
@@ -26,6 +28,8 @@ public class TabListener<T extends Fragment> implements ActionBar.TabListener {
     /* The following are each of the ActionBar.TabListener callbacks */
 
     public void onTabSelected(Tab tab, FragmentTransaction ft) {
+    	//Log.d("AppLevels:" + this.getClass().getSimpleName(), "onTabSelected");
+    	
         // Check if the fragment is already initialized
         if (mFragment == null) {
             // If not, instantiate and add it to the activity
@@ -38,6 +42,8 @@ public class TabListener<T extends Fragment> implements ActionBar.TabListener {
     }
 
     public void onTabUnselected(Tab tab, FragmentTransaction ft) {
+    	//Log.d("AppLevels:" + this.getClass().getSimpleName(), "onTabUnselected");
+    	
         if (mFragment != null) {
             // Detach the fragment, because another one is being attached
             ft.detach(mFragment);
