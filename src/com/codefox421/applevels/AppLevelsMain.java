@@ -23,20 +23,21 @@
 
 package com.codefox421.applevels;
 
-import android.os.Bundle;
-import android.app.ActionBar;
-import android.app.ActionBar.Tab;
-import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningServiceInfo;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Bundle;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 
-public class AppLevelsMain extends Activity {
+import com.actionbarsherlock.app.ActionBar;
+import com.actionbarsherlock.app.ActionBar.Tab;
+import com.actionbarsherlock.app.SherlockFragmentActivity;
+import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuInflater;
+import com.actionbarsherlock.view.MenuItem;
+
+public class AppLevelsMain extends SherlockFragmentActivity {
 	
 	private Tab managedTab;
 	private Tab ignoredTab;
@@ -49,7 +50,7 @@ public class AppLevelsMain extends Activity {
         super.onCreate(savedInstanceState);
             	
         // setup action bar for tabs
-        ActionBar actionBar = getActionBar();
+        ActionBar actionBar = getSupportActionBar();
         actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
         actionBar.setDisplayShowTitleEnabled(false);
 
@@ -77,19 +78,20 @@ public class AppLevelsMain extends Activity {
     
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-    	MenuInflater inflater = getMenuInflater();
+    	MenuInflater inflater = getSupportMenuInflater();
         inflater.inflate(R.menu.action_bar_menu, menu);
-        return true;
+        return super.onCreateOptionsMenu(menu);
     }
     
-
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
     	switch (item.getItemId()) {
     	case R.id.power:
     		toggleService(item);
+    		return true;
     	default:
+    		return super.onOptionsItemSelected(item);
     	}
-    	return false;
     }
 
     

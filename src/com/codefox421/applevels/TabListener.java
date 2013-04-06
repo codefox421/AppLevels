@@ -1,10 +1,10 @@
 package com.codefox421.applevels;
 
-import android.app.ActionBar.Tab;
+import com.actionbarsherlock.app.ActionBar;
+import com.actionbarsherlock.app.ActionBar.Tab;
 import android.app.Activity;
-import android.app.Fragment;
-import android.app.ActionBar;
-import android.app.FragmentTransaction;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 
 public class TabListener<T extends Fragment> implements ActionBar.TabListener {
     private Fragment mFragment;

@@ -25,11 +25,15 @@ may be downloaded from
 
 The [repository][repo-link] contains
 the AppLevels project
-in its entirety.
-Simply download, extract, import, and build.
-The resulting AppLevels.apk,
-when loaded onto your Android device,
-will install AppLevels.
+without the [ActionBarSherlock][sherlock-compat-link]
+compatibility library.
+You will need to download and include it
+([version 4.2.0][sherlock-v420-link] was
+used for development, your mileage may vary
+with other versions)
+in order to build AppLevels.
+Detailed build instructions will be included
+with the first release version.
 
 ##Requirements
 
@@ -71,3 +75,5 @@ limitations under the License.
 [issues-email]: mailto:nick.iaconis+applevelsissues@gmail.com?subject=Issue%20Report%3A%20AppLevels&body=Please%20be%20as%20descriptive%20as%20possible%20when%20writing%20your%20issue%20report.%20Thank%20you%20for%20your%20contribution!%20%5E_%5E "Send an Email to the Developer"
 [codefox421]: https://github.com/codefox421 "Nick Iaconis on GitHub"
 [license-link]: http://www.apache.org/licenses/LICENSE-2.0 "Apache License, Version 2.0"
+[sherlock-compat-link]: http://actionbarsherlock.com/index.html
+[sherlock-v420-link]: https://github.com/JakeWharton/ActionBarSherlock/tree/4.2.0

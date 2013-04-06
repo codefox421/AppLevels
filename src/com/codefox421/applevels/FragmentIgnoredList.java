@@ -24,8 +24,8 @@ package com.codefox421.applevels;
 
 import java.util.ArrayList;
 
+import com.actionbarsherlock.app.SherlockFragment;
 import android.app.Activity;
-import android.app.Fragment;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -34,7 +34,7 @@ import android.view.ViewGroup.LayoutParams;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 
-public class FragmentIgnoredList extends Fragment {
+public class FragmentIgnoredList extends SherlockFragment {
 
 	Activity self;
 	ListView ignoredAppsList;
