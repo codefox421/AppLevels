@@ -32,11 +32,17 @@ import android.app.ActivityManager.RunningServiceInfo;
 import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
-import android.view.View;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 
 public class AppLevelsMain extends Activity {
 	
-
+	private Tab managedTab;
+	private Tab ignoredTab;
+	private Tab instructTab;
+	
+	
 	
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,24 +53,49 @@ public class AppLevelsMain extends Activity {
         actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
         actionBar.setDisplayShowTitleEnabled(false);
 
-        Tab tab = actionBar.newTab()
+        // create and add the managed apps tab
+        managedTab = actionBar.newTab()
                 .setText(R.string.managed_tab)
                 .setTabListener(new TabListener<FragmentManagedList>(
                         this, "managed_list_view", FragmentManagedList.class));
-        actionBar.addTab(tab);
+        actionBar.addTab(managedTab);
         
-        tab = actionBar.newTab()
+        // create and add the ignored apps tab
+        ignoredTab = actionBar.newTab()
+        		.setText(R.string.ignored_tab)
+        		.setTabListener(new TabListener<FragmentIgnoredList>(
+        				this, "ignored_list_view", FragmentIgnoredList.class));
+        actionBar.addTab(ignoredTab);
+        
+        // create and add the instructions tab
+        instructTab = actionBar.newTab()
         		.setText("Instructions")
         		.setTabListener(new TabListener<FragmentInstructions>(
         				this, "instructions_view", FragmentInstructions.class));
-        actionBar.addTab(tab);
+        actionBar.addTab(instructTab);
     }
     
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+    	MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.action_bar_menu, menu);
+        return true;
+    }
+    
+
+    public boolean onOptionsItemSelected(MenuItem item) {
+    	switch (item.getItemId()) {
+    	case R.id.power:
+    		toggleService(item);
+    	default:
+    	}
+    	return false;
+    }
+
     
     @Override
     public void onResume() {
     	super.onResume();
-    	
     }
     
     
@@ -74,7 +105,7 @@ public class AppLevelsMain extends Activity {
     }
     
     
-    public void toggleService(View view) {
+    public void toggleService(MenuItem item) {
     	if(isServiceRunning()) {
     		Log.d("AppLevels", "Stopping Service...");
     		stopService(new Intent(AppLevelsMain.this, AppLevelsService.class));
@@ -83,6 +114,7 @@ public class AppLevelsMain extends Activity {
     		startService(new Intent(AppLevelsMain.this, AppLevelsService.class));
     	}
     	
+    	item.setIcon(isServiceRunning() ? R.drawable.ic_action_power_on : R.drawable.ic_action_power_off);
     	//toggleButton.setChecked(isServiceRunning());
     }
     

@@ -22,7 +22,6 @@
 
 package com.codefox421.applevels;
 
-import android.app.Activity;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -47,12 +46,11 @@ public class ManagedAppAdapter extends ArrayAdapter<ManagedPackage> {
 	
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent) {
-		
 		View row = convertView;
 		PackageHolder packageHolder = null;
 		
 		if(row == null) {
-			LayoutInflater inflater = ((Activity)context).getLayoutInflater();
+			LayoutInflater inflater = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 			row = inflater.inflate(layoutResourceId, parent, false);
 			
 			packageHolder = new PackageHolder();
@@ -72,7 +70,6 @@ public class ManagedAppAdapter extends ArrayAdapter<ManagedPackage> {
 		packageHolder.packageName.setText(managedPackage.getName());
 		packageHolder.volumeLevel.setText(
 				Integer.toString(managedPackage.getVolume()));
-		
 		return row;
 	}
 	

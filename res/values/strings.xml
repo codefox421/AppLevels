@@ -10,5 +10,6 @@
     <string name="volume_level_placeholder">Volume Level</string>
     <string name="managed_tab">Managed Apps</string>
     <string name="ignored_tab">Ignored Apps</string>
+    <string name="power">Power</string>
 
 </resources>

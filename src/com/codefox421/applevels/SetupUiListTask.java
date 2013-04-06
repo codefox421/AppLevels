@@ -53,7 +53,7 @@ public class SetupUiListTask extends AsyncTask<Object, Void, ManagedAppAdapter> 
         
         // Create and attach the adapter
         ManagedAppAdapter appAdapter = null;
-        if(packageList != null) {// && !packageList.isEmpty()) {
+        if(packageList != null && !packageList.isEmpty()) {
         	appAdapter = new ManagedAppAdapter(self.getApplicationContext(),
         			R.layout.app_entry, packageList.toArray(packageArrayTemplate));
         }

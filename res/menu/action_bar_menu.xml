@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android" >
+    <item android:id="@+id/power" android:title="@string/power" android:checkable="true" android:showAsAction="always" android:icon="@android:drawable/ic_lock_power_off" android:actionBarItemBackground="@android:color/transparent"></item>
+    
+
+</menu>
