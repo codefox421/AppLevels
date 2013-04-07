@@ -29,6 +29,7 @@ import android.app.Activity;
 import android.database.Cursor;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -176,6 +177,20 @@ public abstract class FragmentAppList extends SherlockListFragment {
 		
 		invalidateList();
 		
+	}
+	
+	protected void deleteSelected() {
+		datasource.open();
+		SparseBooleanArray checked = managedAppsList.getCheckedItemPositions();
+		for (int k = 0; k < managedAppsList.getCount(); k++) {
+			if (checked.valueAt(k)) {
+				Cursor cursor = (Cursor) managedAppsList.getItemAtPosition(k);
+				datasource.deleteAppVolume(cursor.getString(
+						cursor.getColumnIndex(AppLevelsDBHelper.KEY_PACKAGE)));
+			}
+		}
+		this.invalidate();
+		datasource.close();
 	}
 
 }

@@ -51,6 +51,10 @@ public class FragmentManagedList extends FragmentAppList {
 			ignoreSelected();  // set each selected item's ignore bit to true
 			mode.finish();
 			return true;
+		case R.id.cab_delete:
+			deleteSelected();  // remove each selected item from the database
+			mode.finish();
+			return true;
 		default:
 			return false;
 		}

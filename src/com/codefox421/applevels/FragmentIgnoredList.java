@@ -48,6 +48,10 @@ public class FragmentIgnoredList extends FragmentAppList {
 			manageSelected();
 			mode.finish();
 			return true;
+		case R.id.cab_delete:
+			deleteSelected();
+			mode.finish();
+			return true;
 		default:
 			return false;
 		}
