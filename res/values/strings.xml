@@ -9,7 +9,10 @@
     <string name="package_name_placeholder">Package Name</string>
     <string name="volume_level_placeholder">Volume Level</string>
     <string name="managed_tab">Managed Apps</string>
-    <string name="ignored_tab">Ignored Apps</string>
-    <string name="power">Power</string>
+    <string name="ignored_tab">Blocked Apps</string>
+    <string name="power_on">Start AppLevels</string>
+    <string name="power_off">Stop AppLevels</string>
+    <string name="cab_ignore">Block</string>
+    <string name="cab_manage">Unblock</string>
 
 </resources>
