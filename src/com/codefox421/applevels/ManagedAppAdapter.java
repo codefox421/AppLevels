@@ -23,7 +23,6 @@ package com.codefox421.applevels;
 
 import android.content.Context;
 import android.database.Cursor;
-import android.graphics.drawable.Drawable;
 import android.support.v4.widget.CursorAdapter;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -40,24 +39,18 @@ public class ManagedAppAdapter extends CursorAdapter {
 
 	@Override
 	public void bindView(View view, Context context, Cursor cursor) {
+		// construct a managed package
+		ManagedPackage app = new ManagedPackage(context, cursor);
+		
 		// package name
 		TextView name = (TextView)view.findViewById(R.id.package_name_text);
-		name.setText(cursor.getString(
-				cursor.getColumnIndex(AppLevelsDBHelper.KEY_PACKAGE)));
+		name.setText(app.getName());
 		// volume level
 		TextView level = (TextView)view.findViewById(R.id.volume_level_text);
-		level.setText("" + cursor.getInt(
-				cursor.getColumnIndex(AppLevelsDBHelper.KEY_VOLUME)));
+		level.setText("" + app.getVolume());
 		// application icon
-		Drawable appIcon;
-		try {
-			appIcon = context.getPackageManager().getApplicationIcon(cursor.getString(
-					cursor.getColumnIndex(AppLevelsDBHelper.KEY_PACKAGE)));
-		} catch(Exception exception) {
-			appIcon = context.getResources().getDrawable(R.drawable.default_app);
-		}
 		ImageView icon = (ImageView)view.findViewById(R.id.app_icon);
-		icon.setImageDrawable(appIcon);
+		icon.setImageDrawable(app.getIcon());
 	}
 
 	@Override

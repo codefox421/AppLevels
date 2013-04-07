@@ -21,14 +21,31 @@
 
 package com.codefox421.applevels;
 
+import android.content.Context;
+import android.database.Cursor;
 import android.graphics.drawable.Drawable;
-import android.util.Log;
 
 public class ManagedPackage {
 
 	private Drawable packageIcon;
 	private String packageName;
 	private int packageVolume;
+	
+	public ManagedPackage(Context context, Cursor cursor) {
+		// package name
+		this.packageName = cursor.getString(cursor.getColumnIndex(AppLevelsDBHelper.KEY_PACKAGE));
+		
+		// package icon
+		try {
+			this.packageIcon = context.getPackageManager().getApplicationIcon(cursor.getString(
+					cursor.getColumnIndex(AppLevelsDBHelper.KEY_PACKAGE)));
+		} catch(Exception exception) {
+			this.packageIcon = context.getResources().getDrawable(R.drawable.default_app);
+		}
+		
+		// package volume
+		this.packageVolume = cursor.getInt(cursor.getColumnIndex(AppLevelsDBHelper.KEY_VOLUME));
+	}
 	
 	public ManagedPackage(String packageName, Drawable packageIcon, int packageVolume) {
 		//Log.d("AppLevels:" + this.getClass().getSimpleName(), "ctor");
