@@ -161,4 +161,22 @@ public class AppLevelsDBAdapter {
 		}
 		return deleteSucceeded;
 	}
+	
+	
+	public boolean setIgnoredBit(String packageName, boolean isIgnored) {
+		
+		// Compile values
+		ContentValues valuesToUpdate = new ContentValues();
+		valuesToUpdate.put(AppLevelsDBHelper.KEY_IGNORE, (isIgnored ? 1 : 0));
+		
+		boolean updateSucceeded = false;
+		try {
+			updateSucceeded = database.update(AppLevelsDBHelper.VOLUME_TABLE, valuesToUpdate,
+				AppLevelsDBHelper.KEY_PACKAGE + "='" + packageName + "'", null) > 0;
+		} catch(SQLiteException ex) {
+			Log.w(LOG_TAG, "SQLite exception while setting ignore bit for " + packageName + " to " + (isIgnored ? "true" : "false"));
+		}
+		
+		return updateSucceeded;
+	}
 }
