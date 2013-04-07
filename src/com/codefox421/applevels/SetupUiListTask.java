@@ -27,88 +27,92 @@ import android.app.Activity;
 import android.database.Cursor;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
-import android.util.Log;
 import android.widget.ListView;
 
-public class SetupUiListTask extends AsyncTask<Object, Void, ManagedAppAdapter> {
-	
-	Activity self;
-	ArrayList<ManagedPackage> packageList;
-	ListView managedAppsList;
-	ManagedPackage packageArrayTemplate[] = new ManagedPackage[1];
-
-	@Override
-	protected ManagedAppAdapter doInBackground(Object... params) {
-		//Log.d("AppLevels:" + this.getClass().getSimpleName(), "doInBackground");
-		
-		self = (Activity)params[0];
-		
-		managedAppsList = (ListView)params[1];
-
-		AppLevelsDBAdapter datasource = (AppLevelsDBAdapter)params[2];
-		datasource.open();
-		
-		Boolean getIgnored = (Boolean)params[3];
-        
-        // Create list of managed applications
-        fillData(datasource, getIgnored);
-        
-        // Create and attach the adapter
-        ManagedAppAdapter appAdapter = null;
-        if(packageList != null && !packageList.isEmpty()) {
-        	appAdapter = new ManagedAppAdapter(self.getApplicationContext(),
-        			R.layout.app_entry, packageList.toArray(packageArrayTemplate));
-        }
-		
-		datasource.close();
-		
-		return appAdapter;
-		
-	}
-
-	@Override
-	protected void onPostExecute(ManagedAppAdapter result) {
-		//Log.d("AppLevels:" + this.getClass().getSimpleName(), "onPostExecute");
-		
-		if(result != null)
-			managedAppsList.setAdapter(result);
-		
-	}
-	
-	private void fillData(AppLevelsDBAdapter datasource, Boolean getIgnored) {
-		//Log.d("AppLevels:" + this.getClass().getSimpleName(), "fillData");
-    	
-    	// Retrieve the cursor
-    	Cursor cursor = datasource.GetAppVolumes(getIgnored);
-    	if(cursor == null) {
-    		packageList = null;
-    		return;
-    	}
-        packageList = new ArrayList<ManagedPackage>();
-    	
-    	while(!cursor.isAfterLast()) {
-    		
-    		// Retrieve application icon
-    		Drawable appIcon;
-    		try {
-    			appIcon = self.getPackageManager().getApplicationIcon(cursor.getString(
-    					cursor.getColumnIndex(AppLevelsDBHelper.KEY_PACKAGE)));
-    		} catch(Exception exception) {
-    			appIcon = self.getResources().getDrawable(R.drawable.default_app);
-    		}
-    		
-    		// Retrieve package name
-    		String packageName = cursor.getString(cursor.getColumnIndex(AppLevelsDBHelper.KEY_PACKAGE));
-    		
-    		// Retrieve volume level
-    		int volumeLevel = cursor.getInt(cursor.getColumnIndex(AppLevelsDBHelper.KEY_VOLUME));
-    		
-    		packageList.add(new ManagedPackage(packageName, appIcon, volumeLevel));
-    		
-    		cursor.moveToNext();
-    	}
-    	
-    	//Log.d("AppLevels:" + this.getClass().getSimpleName(), "fillData (end)");
-    }
-	
-}
+//public class SetupUiListTask extends AsyncTask<Object, Void, ManagedAppAdapter> {
+//	
+//	Activity self;
+//	ArrayList<ManagedPackage> packageList;
+//	ListView managedAppsList;
+//	ManagedPackage packageArrayTemplate[] = new ManagedPackage[1];
+//
+//	@Override
+//	protected ManagedAppAdapter doInBackground(Object... params) {
+//		//Log.d("AppLevels:" + this.getClass().getSimpleName(), "doInBackground");
+//		
+//		self = (Activity)params[0];
+//		
+//		managedAppsList = (ListView)params[1];
+//
+//		AppLevelsDBAdapter datasource = (AppLevelsDBAdapter)params[2];
+//		datasource.open();
+//		
+//		Boolean getIgnored = (Boolean)params[3];
+//        
+//        // Create list of managed applications
+//        fillData(datasource, getIgnored);
+//        
+//        // Create and attach the adapter
+//        ManagedAppAdapter appAdapter = (ManagedAppAdapter)params[4];
+//        appAdapter.clear();
+//        if(packageList != null && !packageList.isEmpty()) {
+//        	appAdapter.addAll(packageList);
+////        	appAdapter = new ManagedAppAdapter(self.getApplicationContext(),
+////        			R.layout.app_entry, packageList.toArray(packageArrayTemplate));
+//        }
+//        appAdapter.notifyDataSetChanged();
+//		
+//		datasource.close();
+//		
+//		return appAdapter;
+//		
+//	}
+//
+//	@Override
+//	protected void onPostExecute(ManagedAppAdapter result) {
+//		//Log.d("AppLevels:" + this.getClass().getSimpleName(), "onPostExecute");
+//		
+//		if(result != null && managedAppsList != null && managedAppsList.getAdapter() == null) {
+//			managedAppsList.setAdapter(result);
+//			result.notifyDataSetChanged();
+//		}
+//		
+//	}
+//	
+//	protected void fillData(AppLevelsDBAdapter datasource, Boolean getIgnored) {
+//		//Log.d("AppLevels:" + this.getClass().getSimpleName(), "fillData");
+//    	
+//    	// Retrieve the cursor
+//    	Cursor cursor = datasource.GetAppVolumes(getIgnored);
+//    	if(cursor == null) {
+//    		packageList = null;
+//    		return;
+//    	}
+//        packageList = new ArrayList<ManagedPackage>();
+//    	
+//    	while(!cursor.isAfterLast()) {
+//    		
+//    		// Retrieve application icon
+//    		Drawable appIcon;
+//    		try {
+//    			appIcon = self.getPackageManager().getApplicationIcon(cursor.getString(
+//    					cursor.getColumnIndex(AppLevelsDBHelper.KEY_PACKAGE)));
+//    		} catch(Exception exception) {
+//    			appIcon = self.getResources().getDrawable(R.drawable.default_app);
+//    		}
+//    		
+//    		// Retrieve package name
+//    		String packageName = cursor.getString(cursor.getColumnIndex(AppLevelsDBHelper.KEY_PACKAGE));
+//    		
+//    		// Retrieve volume level
+//    		int volumeLevel = cursor.getInt(cursor.getColumnIndex(AppLevelsDBHelper.KEY_VOLUME));
+//    		
+//    		packageList.add(new ManagedPackage(packageName, appIcon, volumeLevel));
+//    		
+//    		cursor.moveToNext();
+//    	}
+//    	
+//    	//Log.d("AppLevels:" + this.getClass().getSimpleName(), "fillData (end)");
+//    }
+//	
+//}
