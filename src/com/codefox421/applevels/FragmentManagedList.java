@@ -22,60 +22,52 @@
 
 package com.codefox421.applevels;
 
-import java.util.ArrayList;
-
-import com.actionbarsherlock.app.SherlockFragment;
-import android.app.Activity;
+import android.annotation.TargetApi;
+import android.database.Cursor;
+import android.os.Build;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.view.ViewGroup.LayoutParams;
-import android.widget.ListView;
-import android.widget.ProgressBar;
+import android.util.SparseBooleanArray;
+import android.view.ActionMode;
+import android.view.MenuItem;
 
-public class FragmentManagedList extends SherlockFragment {
-
-	Activity self;
-	ListView managedAppsList;
-	AppLevelsDBAdapter datasource;
-	ArrayList<ManagedPackage> packageList;
+public class FragmentManagedList extends FragmentAppList {
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
 		//Log.d("AppLevels:" + this.getClass().getSimpleName(), "onCreate");
-		self = getActivity();
-		datasource = new AppLevelsDBAdapter(self.getApplicationContext());
-	}
 		
+		getIgnored = false;
+		cabMenuId = R.menu.managed_cab;
+		
+		super.onCreate(savedInstanceState);
+	}
+
+	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
 	@Override
-	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-		//Log.d("AppLevels:" + this.getClass().getSimpleName(), "onCreateView");
-		return inflater.inflate(R.layout.apps_list, container, false);
+	protected boolean handleActionItemClick(ActionMode mode, MenuItem item) {
+		// respond to clicks on the actions in the CAB
+		switch (item.getItemId()) {
+		case R.id.cab_ignore:
+			ignoreSelected();  // set each selected item's ignore bit to true
+			mode.finish();
+			return true;
+		default:
+			return false;
+		}
 	}
 	
-	@Override
-	public void onActivityCreated(Bundle savedInstanceState) {
-		super.onActivityCreated(savedInstanceState);
-		//Log.d("AppLevels:" + this.getClass().getSimpleName(), "onActivityCreated");
-		managedAppsList = (ListView)self.findViewById(R.id.managedAppsList);
-        
-		// Create a progress bar to display while the list loads
-        ProgressBar progressBar = new ProgressBar(self.getApplicationContext());
-        progressBar.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT,
-                LayoutParams.WRAP_CONTENT));
-        progressBar.setIndeterminate(true);
-        managedAppsList.setEmptyView(progressBar);
-		
-        Object params[] = new Object[4];
-        params[0] = (Object)self;  // activity
-        params[1] = (Object)managedAppsList;  // list view object
-        params[2] = (Object)datasource;  // database adapter
-        params[3] = (Object)false;  // specifies retrieval of managed packages
-        new SetupUiListTask().execute(params);
-        
+	private void ignoreSelected() {
+		datasource.open();
+		SparseBooleanArray checked = managedAppsList.getCheckedItemPositions();
+		for (int k = 0; k < managedAppsList.getCount(); k++) {
+			if (checked.valueAt(k)) {
+				Cursor cursor = (Cursor) managedAppsList.getItemAtPosition(k);
+				datasource.setIgnoredBit(cursor.getString(
+						cursor.getColumnIndex(AppLevelsDBHelper.KEY_PACKAGE)), true);
+			}
+		}
+		super.invalidate();
+		datasource.close();
 	}
 
 }
