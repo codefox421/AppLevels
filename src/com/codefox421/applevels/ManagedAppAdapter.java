@@ -16,71 +16,56 @@
  * Filename:	ManagedAppAdapter.java
  * Class:		ManagedAppAdapter
  * 
- * Purpose:		Adapts the ManagedPackage class to a ListView for 
- * 				presentation by the GUI.
+ * Purpose:		Maps cursor data to a list row View.
  */
 
 package com.codefox421.applevels;
 
 import android.content.Context;
-import android.util.Log;
+import android.database.Cursor;
+import android.graphics.drawable.Drawable;
+import android.support.v4.widget.CursorAdapter;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-public class ManagedAppAdapter extends ArrayAdapter<ManagedPackage> {
+public class ManagedAppAdapter extends CursorAdapter {
 	
-	Context context;
-	int layoutResourceId;
-	ManagedPackage data[] = null;
-	
-	public ManagedAppAdapter(Context context, int layoutResourceId,
-			ManagedPackage[] data) {
-		super(context, layoutResourceId, data);
-		//Log.d("AppLevels:" + this.getClass().getSimpleName(), "ctor");
-		this.layoutResourceId = layoutResourceId;
-		this.context = context;
-		this.data = data;
-		//Log.d("AppLevels:" + this.getClass().getSimpleName(), "ctor (end)");
+	public ManagedAppAdapter(Context context, Cursor cursor, int flags) {
+		super(context, cursor, flags);
+		
 	}
-	
+
 	@Override
-	public View getView(int position, View convertView, ViewGroup parent) {
-		//Log.d("AppLevels:" + this.getClass().getSimpleName(), "getView");
-		View row = convertView;
-		PackageHolder packageHolder = null;
-		
-		if(row == null) {
-			LayoutInflater inflater = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-			row = inflater.inflate(layoutResourceId, parent, false);
-			
-			packageHolder = new PackageHolder();
-			packageHolder.appIcon = (ImageView)row.findViewById(R.id.app_icon);
-			packageHolder.packageName = (TextView)row
-					.findViewById(R.id.package_name_text);
-			packageHolder.volumeLevel = (TextView)row
-					.findViewById(R.id.volume_level_text);
-			
-			row.setTag(packageHolder);
-		} else {
-			packageHolder = (PackageHolder)row.getTag();
+	public void bindView(View view, Context context, Cursor cursor) {
+		// package name
+		TextView name = (TextView)view.findViewById(R.id.package_name_text);
+		name.setText(cursor.getString(
+				cursor.getColumnIndex(AppLevelsDBHelper.KEY_PACKAGE)));
+		// volume level
+		TextView level = (TextView)view.findViewById(R.id.volume_level_text);
+		level.setText("" + cursor.getInt(
+				cursor.getColumnIndex(AppLevelsDBHelper.KEY_VOLUME)));
+		// application icon
+		Drawable appIcon;
+		try {
+			appIcon = context.getPackageManager().getApplicationIcon(cursor.getString(
+					cursor.getColumnIndex(AppLevelsDBHelper.KEY_PACKAGE)));
+		} catch(Exception exception) {
+			appIcon = context.getResources().getDrawable(R.drawable.default_app);
 		}
-		
-		ManagedPackage managedPackage = data[position];
-		packageHolder.appIcon.setImageDrawable(managedPackage.getIcon());
-		packageHolder.packageName.setText(managedPackage.getName());
-		packageHolder.volumeLevel.setText(
-				Integer.toString(managedPackage.getVolume()));
-		return row;
+		ImageView icon = (ImageView)view.findViewById(R.id.app_icon);
+		icon.setImageDrawable(appIcon);
 	}
-	
-	static class PackageHolder {
-		ImageView appIcon;
-		TextView packageName;
-		TextView volumeLevel;
+
+	@Override
+	public View newView(Context context, Cursor cursor, ViewGroup parent) {
+		LayoutInflater inflater = LayoutInflater.from(context);
+		View v = inflater.inflate(R.layout.app_entry, parent, false);
+		bindView(v, context, cursor);
+		return v;
 	}
 
 }
