@@ -14,5 +14,6 @@
     <string name="power_off">Stop AppLevels</string>
     <string name="cab_ignore">Block</string>
     <string name="cab_manage">Unblock</string>
+    <string name="cab_delete">Forget</string>
 
 </resources>
