@@ -16,7 +16,7 @@
  * Filename:	AppLevelsService.java
  * Class:		AppLevelsService
  * 
- * Purpose:		Runs and manages a background service in support of the AppLevels
+ * Purpose:		Runs and manages a background alarm in support of the AppLevels
  * 				application. Deals with monitoring switches between top-level (user-
  * 				facing) applications, monitoring adjustments to media volume level,
  * 				writing/retrieving data from storage, and adjusting media volume
@@ -25,7 +25,6 @@
  * 				AppLevels resides.
  */
 
-
 package com.codefox421.applevels;
 
 import java.util.Calendar;
@@ -33,108 +32,126 @@ import android.app.ActivityManager;
 import android.app.AlarmManager;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.media.AudioManager;
-import android.os.IBinder;
 import android.util.Log;
 import android.widget.Toast;
 
-public class AppLevelsService extends Service {
+public class AppLevelsService {
 	
+	private Context context;
+	
+	// Constants
 	private static final String LOG_TAG = "AppLevelsService";				// Tag used for logging
-	private static VolumeReceiver volumeReceiver;							// Volume Change listener
 	private static final int NOTIF_ID = 0;									// ID number for notification manager
 	private static final String NOTIF_TAG = "com.codefox421.AppLevels";		// Tag for notification manager
-	private static NotificationManager notificationManager;					// Notification Manager for persistent notifications
-	private static AudioManager audioManager;								// Audio Manager for volume level sensing
-	private static IntentFilter volumeFilter =								// Intent Filter for volume level sensing
-			new IntentFilter("android.media.VOLUME_CHANGED_ACTION");
-	private static ActivityManager activityManager;							// Activity Manager for running activity sensing
-	private int lastVolume;													// Stores last volume level to check against
-	private String lastPackage;												// Stores last running application to check against
-	private static AppLevelsDBAdapter database;								// DB access to applications' volume records
-	private AlarmManager alarmManager;										// Alarm Manager for scheduled application sniffing
-	private static PendingIntent operation;									// Pending Intent for use with Alarm Manager
-	private static AlarmReceiver alarmReceiver;								// Alarm Receiver to help with application sniffing
 	private static final String ACTION_NAME = "com.codefox421.appsniffnow";	// 
-	private static IntentFilter  alarmFilter =
-			new IntentFilter(ACTION_NAME);									// 
+	private static final Intent ACTION_INTENT = new Intent(ACTION_NAME);	// 
+	
+	// Managers
+	private static ActivityManager activityManager;							// Activity Manager for running activity sensing
+	private AlarmManager alarmManager;										// Alarm Manager for scheduled application sniffing
+	private static AudioManager audioManager;								// Audio Manager for volume level sensing
+	private static NotificationManager notificationManager;					// Notification Manager for persistent notifications
+	
+	// Receivers
+	private static AlarmReceiver alarmReceiver;								// Alarm Receiver to help with application sniffing
+	private static VolumeReceiver volumeReceiver;							// Volume Change listener
+	
+	// Filters
+	private static final IntentFilter volumeFilter =						// Intent Filter for volume level sensing
+			new IntentFilter("android.media.VOLUME_CHANGED_ACTION");
+	private static final IntentFilter alarmFilter =							// Intent Filter for alarm response
+			new IntentFilter(ACTION_NAME); 
+	
+	// Miscellaneous
+	private static AppLevelsDBAdapter database;								// DB access to applications' volume records
+	private static PendingIntent operation;									// Pending Intent for use with Alarm Manager
+	
+	// Member variables
 	private static boolean databaseLocked = false;							// Lock for changing volume without affecting database
+	private String lastPackage;												// Stores last running application to check against
+	private int lastVolume;													// Stores last volume level to check against
 
 	
-	@Override
-	public IBinder onBind(Intent intent) {
-		return null;
-	}
-	
-	
-	@Override
-	public void onCreate() {
-	//code to execute when the service is first created
+	public AppLevelsService(Context context) {
 		Log.d(LOG_TAG, "onCreate method start");
 		
-		volumeReceiver = new VolumeReceiver();
-		notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-		audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
-		activityManager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
+		this.context = context;
+
+		// Create managers
+		activityManager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+		alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+		audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+		notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 		
-		database = new AppLevelsDBAdapter(this);
-		database.open();
-		
-		alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
-		operation = PendingIntent.getBroadcast(this, 0, new Intent(ACTION_NAME), PendingIntent.FLAG_UPDATE_CURRENT);
+		// Create receivers
 		alarmReceiver = new AlarmReceiver();
+		volumeReceiver = new VolumeReceiver();
+		
+		// Initialize database
+		database = new AppLevelsDBAdapter(context);
 		
 		Log.d(LOG_TAG, "onCreate method complete");
 	}
 	
 	
-	@Override
-	public void onStart(Intent intent, int startid) {
-	//code to execute when the service is starting up
+	public void start() {
 		Log.d(LOG_TAG, "onStart method start");
 		
-		Toast.makeText(this, "AppLevelsService Started", Toast.LENGTH_SHORT).show();
-		
-		registerReceiver(volumeReceiver, volumeFilter);		//start listening for volume changes
-		lastVolume = getVolume();
-		
-		lastPackage = getFrontPackage();
-		alarmManager.set(AlarmManager.RTC, Calendar.getInstance()
-				.getTimeInMillis() + 1000, operation);
-		registerReceiver(alarmReceiver, alarmFilter);		//start sniffing for launched applications
-		
 		database.open();
+		
+		// Start listening for volume changes
+		lastVolume = getVolume();
+		context.registerReceiver(volumeReceiver, volumeFilter);
+		
+		// Initialize alarm intent
+		operation = PendingIntent.getBroadcast(context, 0, ACTION_INTENT, PendingIntent.FLAG_UPDATE_CURRENT);
+		
+		// Start sniffing for launched applications
+		lastPackage = getFrontPackage();
+		alarmManager.setRepeating(AlarmManager.RTC, Calendar.getInstance()
+				.getTimeInMillis() + 1000, 1000, operation);
+		context.registerReceiver(alarmReceiver, alarmFilter);
+		
+		Toast.makeText(context, "AppLevelsService Running", Toast.LENGTH_SHORT).show();
 		
 		Log.d(LOG_TAG, "onStart method complete");
 	}
 	
 	
-	@Override
-	public void onDestroy() {
-	//code to execute when the service is shutting down
+	public void stop() {
 		Log.d(LOG_TAG, "onDestroy method start");
 		
-		unregisterReceiver(volumeReceiver);		//stop listening for volume changes
+		// Stop listening for volume changes
+		context.unregisterReceiver(volumeReceiver);
+		
+		// Stop sniffing for launched applications
+		alarmManager.cancel(operation);
+		operation.cancel();
+		context.unregisterReceiver(alarmReceiver);
 		
 		notificationManager.cancel(NOTIF_TAG, NOTIF_ID);		//close the active notification
 		
-		alarmManager.cancel(operation);		//stop sniffing for launched applications
-		unregisterReceiver(alarmReceiver);
-		
 		database.close();
 		
-		Toast.makeText(this, "AppLevelsService Stopped", Toast.LENGTH_SHORT).show();
+		Toast.makeText(context, "AppLevelsService Stopped", Toast.LENGTH_SHORT).show();
 		
 		Log.d(LOG_TAG, "onDestroy method complete");
 	}
 	
 	
+	public boolean isRunning() {
+		PendingIntent result = PendingIntent.getBroadcast(context, 0, ACTION_INTENT, PendingIntent.FLAG_NO_CREATE);
+		return result != null;
+	}
+	
+	
 	private void recordVolume() {
+		
 		// Check for database lock
 		if(databaseLocked)
 			return;
@@ -158,31 +175,7 @@ public class AppLevelsService extends Service {
     	lastVolume = currentVolume;
 	}
 	
-	
-	private class VolumeReceiver extends BroadcastReceiver {
-
-		@Override
-		public void onReceive(Context context, Intent intent) {
-			
-			recordVolume();
-		}
-
-	}
-	
-	private class AlarmReceiver extends BroadcastReceiver {
-		
-		@Override
-		public void onReceive(Context context, Intent intent) {
-			
-			comparePackages();
-			
-			alarmManager.set(AlarmManager.RTC, Calendar.getInstance()
-					.getTimeInMillis() + 1000, operation);		//continue sniffing for launched applications
-		}
-	}
-	
 	private void comparePackages() {
-		
 //		Log.d(LOG_TAG, "Comparing packages...");
 		
 		String currentPackage = getFrontPackage();
@@ -196,7 +189,6 @@ public class AppLevelsService extends Service {
 	}
 	
 	private void initAppVolume(String packageName) {
-		
 		Log.d(LOG_TAG, "Initializing App Volume for " + packageName + "...");
 		
 		// Retrieve the stored value
@@ -232,6 +224,26 @@ public class AppLevelsService extends Service {
 	
 	private int getVolume() {
 		return audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
+	}
+	
+	
+	private class VolumeReceiver extends BroadcastReceiver {
+
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			
+			recordVolume();
+		}
+
+	}
+	
+	private class AlarmReceiver extends BroadcastReceiver {
+		
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			
+			comparePackages();
+		}
 	}
 
 }
