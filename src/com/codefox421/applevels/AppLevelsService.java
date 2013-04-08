@@ -262,6 +262,7 @@ public class AppLevelsService extends Service {
 			mBuilder.setSmallIcon(R.drawable.ic_stat_active);
 		}
 		mBuilder.setOngoing(true);
+		mBuilder.setWhen(0);
 		
 		return mBuilder.build();
 	}
