@@ -15,5 +15,8 @@
     <string name="cab_ignore">Block</string>
     <string name="cab_manage">Unblock</string>
     <string name="cab_delete">Forget</string>
+    <string name="stat_unmanaged">The current app is unmanaged.</string>
+    <string name="stat_title">AppLevels Active</string>
+    <string name="stat_managed">\@</string>
 
 </resources>

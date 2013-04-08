@@ -28,25 +28,30 @@
 package com.codefox421.applevels;
 
 import java.util.Calendar;
+
 import android.app.ActivityManager;
+import android.app.ActivityManager.RunningServiceInfo;
 import android.app.AlarmManager;
+import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.BitmapFactory;
 import android.media.AudioManager;
+import android.os.IBinder;
+import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 import android.widget.Toast;
 
-public class AppLevelsService {
-	
-	private Context context;
+public class AppLevelsService extends Service {
 	
 	// Constants
 	private static final String LOG_TAG = "AppLevelsService";				// Tag used for logging
-	private static final int NOTIF_ID = 0;									// ID number for notification manager
+	private static final int NOTIF_ID = 421;								// ID number for notification manager
 	private static final String NOTIF_TAG = "com.codefox421.AppLevels";		// Tag for notification manager
 	private static final String ACTION_NAME = "com.codefox421.appsniffnow";	// 
 	private static final Intent ACTION_INTENT = new Intent(ACTION_NAME);	// 
@@ -77,76 +82,83 @@ public class AppLevelsService {
 	private int lastVolume;													// Stores last volume level to check against
 
 	
-	public AppLevelsService(Context context) {
+	@Override
+	public void onCreate() {
 		Log.d(LOG_TAG, "onCreate method start");
 		
-		this.context = context;
-
 		// Create managers
-		activityManager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
-		alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-		audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
-		notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+		activityManager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+		alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+		audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+		notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 		
 		// Create receivers
 		alarmReceiver = new AlarmReceiver();
 		volumeReceiver = new VolumeReceiver();
 		
 		// Initialize database
-		database = new AppLevelsDBAdapter(context);
+		database = new AppLevelsDBAdapter(this);
+		
+		// Make foreground service
+		Notification notification = buildNotification(null, 0);
+		startForeground(NOTIF_ID, notification);
 		
 		Log.d(LOG_TAG, "onCreate method complete");
 	}
 	
 	
-	public void start() {
+	@Override
+	public void onStart(Intent intent, int startId) {
 		Log.d(LOG_TAG, "onStart method start");
 		
 		database.open();
 		
 		// Start listening for volume changes
 		lastVolume = getVolume();
-		context.registerReceiver(volumeReceiver, volumeFilter);
+		registerReceiver(volumeReceiver, volumeFilter);
 		
 		// Initialize alarm intent
-		operation = PendingIntent.getBroadcast(context, 0, ACTION_INTENT, PendingIntent.FLAG_UPDATE_CURRENT);
+		operation = PendingIntent.getBroadcast(this, 0, ACTION_INTENT, PendingIntent.FLAG_UPDATE_CURRENT);
 		
 		// Start sniffing for launched applications
 		lastPackage = getFrontPackage();
 		alarmManager.setRepeating(AlarmManager.RTC, Calendar.getInstance()
 				.getTimeInMillis() + 1000, 1000, operation);
-		context.registerReceiver(alarmReceiver, alarmFilter);
+		registerReceiver(alarmReceiver, alarmFilter);
 		
-		Toast.makeText(context, "AppLevelsService Running", Toast.LENGTH_SHORT).show();
+		Toast.makeText(this, "AppLevelsService Running", Toast.LENGTH_SHORT).show();
 		
 		Log.d(LOG_TAG, "onStart method complete");
 	}
 	
 	
-	public void stop() {
+	@Override
+	public void onDestroy() {
 		Log.d(LOG_TAG, "onDestroy method start");
 		
 		// Stop listening for volume changes
-		context.unregisterReceiver(volumeReceiver);
+		unregisterReceiver(volumeReceiver);
 		
 		// Stop sniffing for launched applications
 		alarmManager.cancel(operation);
 		operation.cancel();
-		context.unregisterReceiver(alarmReceiver);
+		unregisterReceiver(alarmReceiver);
+		
+		// Unregister foreground service
+		stopForeground(true);
 		
 		notificationManager.cancel(NOTIF_TAG, NOTIF_ID);		//close the active notification
 		
 		database.close();
 		
-		Toast.makeText(context, "AppLevelsService Stopped", Toast.LENGTH_SHORT).show();
+		Toast.makeText(this, "AppLevelsService Stopped", Toast.LENGTH_SHORT).show();
 		
 		Log.d(LOG_TAG, "onDestroy method complete");
 	}
-	
-	
-	public boolean isRunning() {
-		PendingIntent result = PendingIntent.getBroadcast(context, 0, ACTION_INTENT, PendingIntent.FLAG_NO_CREATE);
-		return result != null;
+
+	@Override
+	public IBinder onBind(Intent intent) {
+		return null;
 	}
 	
 	
@@ -173,6 +185,10 @@ public class AppLevelsService {
     	
     	// Update volume tracker
     	lastVolume = currentVolume;
+    	
+    	// Update notification
+    	Notification notification = buildNotification(packageName, lastVolume);
+    	notificationManager.notify(NOTIF_ID, notification);
 	}
 	
 	private void comparePackages() {
@@ -182,20 +198,24 @@ public class AppLevelsService {
 		if(!currentPackage.equalsIgnoreCase(lastPackage)) {
 
 			// Set the media volume to stored level (if exists)
-			initAppVolume(currentPackage);
+			boolean isManaged = initAppVolume(currentPackage);
+			
+			// Update the notification
+			Notification notification = buildNotification((isManaged ? currentPackage : null), lastVolume);
+			notificationManager.notify(NOTIF_ID, notification);
 			
 			lastPackage = currentPackage;
 		}
 	}
 	
-	private void initAppVolume(String packageName) {
+	private boolean initAppVolume(String packageName) {
 		Log.d(LOG_TAG, "Initializing App Volume for " + packageName + "...");
 		
 		// Retrieve the stored value
 		int storedLevel = database.getAppVolume(packageName);
 		if(storedLevel < 0) {
 			Log.d(LOG_TAG, "No record exists for " + packageName);
-			return;
+			return false;
 		}
 		
 		Log.d(LOG_TAG, "Volume to be set to " + storedLevel + ".");
@@ -216,6 +236,7 @@ public class AppLevelsService {
 		databaseLocked = false;
 		
 		Log.d(LOG_TAG, "App Volume Initialized!");
+		return true;
 	}
 	
 	private String getFrontPackage() {
@@ -224,6 +245,25 @@ public class AppLevelsService {
 	
 	private int getVolume() {
 		return audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
+	}
+	
+	private Notification buildNotification(String packageName, int volume) {
+		
+		NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this);
+		
+		mBuilder.setContentTitle(getResources().getString(R.string.stat_title));
+		if (packageName == null) {
+			mBuilder.setContentText(getResources().getString(R.string.stat_unmanaged));
+			//mBuilder.setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.ic_stat_inactive));
+			mBuilder.setSmallIcon(R.drawable.ic_stat_inactive);
+		} else {
+			mBuilder.setContentText(packageName + " " + getResources().getString(R.string.stat_managed) + " " + volume);
+			//mBuilder.setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.ic_stat_active));
+			mBuilder.setSmallIcon(R.drawable.ic_stat_active);
+		}
+		mBuilder.setOngoing(true);
+		
+		return mBuilder.build();
 	}
 	
 	
@@ -242,8 +282,41 @@ public class AppLevelsService {
 		@Override
 		public void onReceive(Context context, Intent intent) {
 			
+			boolean serviceIsRunning = false;
+			ActivityManager manager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+			for (RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+				if (AppLevelsService.class.getName().equals(service.service.getClassName())) {
+					serviceIsRunning = true;
+				}
+			}
+			if (!serviceIsRunning) {
+				context.startService(new Intent(context, AppLevelsService.class));
+			}
+			
 			comparePackages();
 		}
+	}
+	
+	
+	public static void start(Context context) {
+		context.startService(new Intent(context, AppLevelsService.class));
+	}
+	
+	public static void stop(Context context) {
+		context.stopService(new Intent(context, AppLevelsService.class));
+	}
+	
+	public static boolean isRunning(Context context) {
+		//Log.d("AppLevels:" + this.getClass().getSimpleName(), "isRunning");
+
+		ActivityManager manager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+		for (RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+			if (AppLevelsService.class.getName().equals(service.service.getClassName())) {
+				return true;
+			}
+		}
+		return false;
+
 	}
 
 }

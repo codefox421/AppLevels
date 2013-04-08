@@ -23,6 +23,7 @@
 
 package com.codefox421.applevels;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -47,8 +48,6 @@ public class AppLevelsMain extends SherlockFragmentActivity {
 	
 	private ActionBar actionBar;
 	private MenuItem power;
-	
-	private static AppLevelsService service = null;
 	
 	private boolean justCreated = false;
 	
@@ -82,11 +81,6 @@ public class AppLevelsMain extends SherlockFragmentActivity {
 //        		.setTabListener(new TabListener<FragmentInstructions>(
 //        				this, "instructions_view", FragmentInstructions.class));
 //        actionBar.addTab(instructTab);
-        
-        // Create instance of service
-        if (service == null) {
-    		service = new AppLevelsService(this);
-    	}
         
         // Run "resume" setup
         if (savedInstanceState != null) {
@@ -176,7 +170,7 @@ public class AppLevelsMain extends SherlockFragmentActivity {
     	//Log.d("AppLevels:" + this.getClass().getSimpleName(), "updatePowerButton");
     	
     	if ( power != null ) {
-    		boolean serviceActive = service.isRunning();
+    		boolean serviceActive = AppLevelsService.isRunning(this);
     		power.setIcon(
     			serviceActive
     				? R.drawable.ic_action_power_on
@@ -193,12 +187,12 @@ public class AppLevelsMain extends SherlockFragmentActivity {
     public void toggleService(MenuItem item) {
     	//Log.d("AppLevels:" + this.getClass().getSimpleName(), "toggleService");
     	
-    	if (service.isRunning()) {
+    	if (AppLevelsService.isRunning(this)) {
     		Log.d("AppLevels", "Stopping Service...");
-    		service.stop();
+    		stopService(new Intent(AppLevelsMain.this, AppLevelsService.class));
     	} else {
     		Log.d("AppLevels", "Starting Service...");
-    		service.start();
+    		startService(new Intent(AppLevelsMain.this, AppLevelsService.class));
     	}
     	
     	updatePowerButton();
