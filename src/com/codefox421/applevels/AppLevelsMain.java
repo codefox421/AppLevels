@@ -23,10 +23,6 @@
 
 package com.codefox421.applevels;
 
-import android.app.ActivityManager;
-import android.app.ActivityManager.RunningServiceInfo;
-import android.content.Context;
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -41,14 +37,18 @@ import com.actionbarsherlock.view.MenuItem;
 
 public class AppLevelsMain extends SherlockFragmentActivity {
 	
-	private static String MANAGED_TAG = "managed_list_view";
-	private static String IGNORED_TAG = "ignored_list_view";
+	private static final String MANAGED_TAG = "managed_list_view";
+	private static final String IGNORED_TAG = "ignored_list_view";
+	private static final String ACTIVE_TAB_INDEX = "activeTabIndex";
 	
 	private Tab managedTab;
 	private Tab ignoredTab;
 //	private Tab instructTab;
 	
+	private ActionBar actionBar;
 	private MenuItem power;
+	
+	private static AppLevelsService service = null;
 	
 	private boolean justCreated = false;
 	
@@ -57,31 +57,45 @@ public class AppLevelsMain extends SherlockFragmentActivity {
         super.onCreate(savedInstanceState);
         //Log.d("AppLevels:" + this.getClass().getSimpleName(), "onCreate");
             	
-        // setup action bar for tabs
-        ActionBar actionBar = getSupportActionBar();
+        // Setup action bar for tabs
+        actionBar = getSupportActionBar();
         actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
         actionBar.setDisplayShowTitleEnabled(false);
 
-        // create and add the managed apps tab
+        // Create and add the managed apps tab
         managedTab = actionBar.newTab()
                 .setText(R.string.managed_tab)
                 .setTabListener(new TabListener<FragmentManagedList>(
                         this, MANAGED_TAG, FragmentManagedList.class));
         actionBar.addTab(managedTab);
         
-        // create and add the ignored apps tab
+        // Create and add the ignored apps tab
         ignoredTab = actionBar.newTab()
         		.setText(R.string.ignored_tab)
         		.setTabListener(new TabListener<FragmentIgnoredList>(
         				this, IGNORED_TAG, FragmentIgnoredList.class));
         actionBar.addTab(ignoredTab);
         
-        // create and add the instructions tab
+        // Create and add the instructions tab
 //        instructTab = actionBar.newTab()
 //        		.setText("Instructions")
 //        		.setTabListener(new TabListener<FragmentInstructions>(
 //        				this, "instructions_view", FragmentInstructions.class));
 //        actionBar.addTab(instructTab);
+        
+        // Create instance of service
+        if (service == null) {
+    		service = new AppLevelsService(this);
+    	}
+        
+        // Run "resume" setup
+        if (savedInstanceState != null) {
+        	//do resume state actions here
+        	
+        	// Return to last selected tab
+        	int tabIndex = savedInstanceState.getInt(ACTIVE_TAB_INDEX);
+        	actionBar.setSelectedNavigationItem(tabIndex);
+        }
         
         justCreated = true;
     }
@@ -123,14 +137,14 @@ public class AppLevelsMain extends SherlockFragmentActivity {
 		updatePowerButton();
 		
 		if (!justCreated) {
-			// update the lists
+			// Update the lists
 			FragmentManager fragmentManager = getSupportFragmentManager();
-			// managed apps list
+			// Managed apps list
 			Fragment fragment = fragmentManager.findFragmentByTag(MANAGED_TAG);
 			if (fragment != null) {
 				((FragmentManagedList) fragment).invalidate();
 			}
-			// ignored apps list
+			// Ignored apps list
 			fragment = fragmentManager.findFragmentByTag(IGNORED_TAG);
 			if (fragment != null) {
 				((FragmentIgnoredList) fragment).invalidate();
@@ -149,11 +163,20 @@ public class AppLevelsMain extends SherlockFragmentActivity {
     }
     
     
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+    	super.onSaveInstanceState(outState);
+    	
+    	// Store the active tab
+    	outState.putInt(ACTIVE_TAB_INDEX, actionBar.getSelectedNavigationIndex());
+    }
+    
+    
     private void updatePowerButton() {
     	//Log.d("AppLevels:" + this.getClass().getSimpleName(), "updatePowerButton");
     	
     	if ( power != null ) {
-    		boolean serviceActive = isServiceRunning();
+    		boolean serviceActive = service.isRunning();
     		power.setIcon(
     			serviceActive
     				? R.drawable.ic_action_power_on
@@ -170,28 +193,15 @@ public class AppLevelsMain extends SherlockFragmentActivity {
     public void toggleService(MenuItem item) {
     	//Log.d("AppLevels:" + this.getClass().getSimpleName(), "toggleService");
     	
-    	if(isServiceRunning()) {
+    	if (service.isRunning()) {
     		Log.d("AppLevels", "Stopping Service...");
-    		stopService(new Intent(AppLevelsMain.this, AppLevelsService.class));
+    		service.stop();
     	} else {
     		Log.d("AppLevels", "Starting Service...");
-    		startService(new Intent(AppLevelsMain.this, AppLevelsService.class));
+    		service.start();
     	}
     	
     	updatePowerButton();
-    }
-    
-    
-    private boolean isServiceRunning() {
-    	//Log.d("AppLevels:" + this.getClass().getSimpleName(), "isServiceRunning");
-    	
-        ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
-        for (RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
-            if (AppLevelsService.class.getName().equals(service.service.getClassName())) {
-                return true;
-            }
-        }
-        return false;
     }
 
 }
