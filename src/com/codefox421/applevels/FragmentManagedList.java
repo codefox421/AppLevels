@@ -63,15 +63,23 @@ public class FragmentManagedList extends FragmentAppList {
 	private void ignoreSelected() {
 		datasource.open();
 		SparseBooleanArray checked = managedAppsList.getCheckedItemPositions();
-		for (int k = 0; k < managedAppsList.getCount(); k++) {
+//		int count = 0;
+		for (int k = 0; k < managedAppsList.getCount(); ++k) {
 			if (checked.valueAt(k)) {
 				Cursor cursor = (Cursor) managedAppsList.getItemAtPosition(k);
-				datasource.setIgnoredBit(cursor.getString(
-						cursor.getColumnIndex(AppLevelsDBHelper.KEY_PACKAGE)), true);
+				if (datasource.setIgnoredBit(cursor.getString(
+						cursor.getColumnIndex(AppLevelsDBHelper.KEY_PACKAGE)), true)) {
+//					++count;
+				}
 			}
 		}
 		super.invalidate();
 		datasource.close();
+		
+//		String cabIgnore = self.getResources().getString(R.string.cab_ignore);
+//		Toast.makeText(self, cabIgnore + ((cabIgnore.charAt(cabIgnore.length() - 1)) == 'e' ? "d" : "ed")
+//				+ " " + count + " App" + ((count > 1) ? "s" : ""), Toast.LENGTH_SHORT).show();
+		
 	}
 
 }
