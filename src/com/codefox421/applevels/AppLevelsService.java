@@ -174,7 +174,8 @@ public class AppLevelsService extends Service {
     		return;		//cancel record if volume is unchanged
     	
     	// Find the currently running application
-    	String packageName = getFrontPackage();
+    	// If music is playing, use the last known application
+    	String packageName = audioManager.isMusicActive() ? lastPackage : getFrontPackage();
     	if(packageName.equalsIgnoreCase("com.codefox421.applevels"))
     		return;		//cancel record if self is active
     	
@@ -195,7 +196,8 @@ public class AppLevelsService extends Service {
 //		Log.d(LOG_TAG, "Comparing packages...");
 		
 		String currentPackage = getFrontPackage();
-		if(!currentPackage.equalsIgnoreCase(lastPackage)) {
+		boolean musicPlaying = audioManager.isMusicActive();
+		if(!musicPlaying && !currentPackage.equalsIgnoreCase(lastPackage)) {
 
 			// Set the media volume to stored level (if exists)
 			boolean isManaged = initAppVolume(currentPackage);
@@ -224,11 +226,8 @@ public class AppLevelsService extends Service {
 		databaseLocked = true;
 		
 		// Adjust the volume
-		while(getVolume() < storedLevel)
-			audioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_RAISE, 0);
-		while(getVolume() > storedLevel)
-			audioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_LOWER, 0);
-		lastVolume = getVolume();
+		audioManager.setStreamVolume(AudioManager.STREAM_MUSIC,
+				Math.min(storedLevel, audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)), 0);
 		
 		Log.d(LOG_TAG, "Volume adjusted to " + getVolume() + ".");
 		
