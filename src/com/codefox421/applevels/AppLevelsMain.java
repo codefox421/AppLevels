@@ -98,15 +98,23 @@ public class AppLevelsMain extends SherlockFragmentActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
     	//Log.d("AppLevels:" + this.getClass().getSimpleName(), "onCreateOptionsMenu");
     	
-    	// inflate the menu
+    	// Inflate the menu
     	MenuInflater inflater = getSupportMenuInflater();
         inflater.inflate(R.menu.action_bar_menu, menu);
         
-        // grab the power button
-        power = menu.findItem(R.id.power);
-        
         //Log.d("AppLevels:" + this.getClass().getSimpleName(), "onCreateOptionsMenu (end)");
         return super.onCreateOptionsMenu(menu);
+    }
+    
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+    	
+    	// Grab the power button (make sure we have the right menu item)
+    	// Then refresh it
+        power = menu.findItem(R.id.power);
+        updatePowerButton();
+        
+        return true;
     }
     
     @Override
@@ -126,18 +134,17 @@ public class AppLevelsMain extends SherlockFragmentActivity {
     @Override
     public void onResume() {
     	//Log.d("AppLevels:" + this.getClass().getSimpleName(), "onResume");
-    	
-    	// update the power button
-		updatePowerButton();
-		
-		if (!justCreated) {
-			// Update the lists
+
+		// Update the lists
+    	if (!justCreated) {
 			FragmentManager fragmentManager = getSupportFragmentManager();
+			
 			// Managed apps list
 			Fragment fragment = fragmentManager.findFragmentByTag(MANAGED_TAG);
 			if (fragment != null) {
 				((FragmentManagedList) fragment).invalidate();
 			}
+			
 			// Ignored apps list
 			fragment = fragmentManager.findFragmentByTag(IGNORED_TAG);
 			if (fragment != null) {
