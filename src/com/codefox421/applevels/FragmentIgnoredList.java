@@ -62,7 +62,7 @@ public class FragmentIgnoredList extends FragmentAppList {
 //		int count = 0;
 		SparseBooleanArray checked = managedAppsList.getCheckedItemPositions();
 		for (int k = 0; k < managedAppsList.getCount(); ++k) {
-			if (checked.valueAt(k)) {
+			if (checked.get(k)) {
 				Cursor cursor = (Cursor) managedAppsList.getItemAtPosition(k);
 				if (datasource.setIgnoredBit(cursor.getString(
 						cursor.getColumnIndex(AppLevelsDBHelper.KEY_PACKAGE)), false)) {

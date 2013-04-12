@@ -65,7 +65,7 @@ public class FragmentManagedList extends FragmentAppList {
 		SparseBooleanArray checked = managedAppsList.getCheckedItemPositions();
 //		int count = 0;
 		for (int k = 0; k < managedAppsList.getCount(); ++k) {
-			if (checked.valueAt(k)) {
+			if (checked.get(k)) {
 				Cursor cursor = (Cursor) managedAppsList.getItemAtPosition(k);
 				if (datasource.setIgnoredBit(cursor.getString(
 						cursor.getColumnIndex(AppLevelsDBHelper.KEY_PACKAGE)), true)) {
