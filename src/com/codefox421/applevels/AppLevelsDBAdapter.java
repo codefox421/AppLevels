@@ -128,7 +128,7 @@ public class AppLevelsDBAdapter {
 		return GetAppVolumes(where);
 	}
 	
-	public Cursor GetAppVolumes(String whereClause) throws SQLException {
+	protected Cursor GetAppVolumes(String whereClause) throws SQLException {
 		
 		// Query the database
 		Cursor mCursor;
@@ -178,5 +178,32 @@ public class AppLevelsDBAdapter {
 		}
 		
 		return updateSucceeded;
+	}
+	
+	public boolean getIgnoredBit(String packageName) throws SQLException {
+		
+		// Query the database
+		Cursor mCursor;
+		try {
+			mCursor = database.query(true, AppLevelsDBHelper.VOLUME_TABLE, new String[] { AppLevelsDBHelper.KEY_IGNORE, },
+					AppLevelsDBHelper.KEY_PACKAGE + "='" + packageName + "'", null, null, null, null, null);
+		} catch(SQLiteException ex) {
+			Log.e(LOG_TAG, "SQLite exception on ignored bit for " + packageName);
+			return false;		//query error
+		} catch(Exception ex) {
+			Log.e(LOG_TAG, "Unknown exception on ignored bit for " + packageName);
+			return false;		//unknown error
+		}
+		
+		// Verify cursor and extract value
+		if (mCursor != null && mCursor.getCount() > 0) {
+			mCursor.moveToFirst();
+			boolean value = mCursor.getInt(mCursor.getColumnIndex(AppLevelsDBHelper.KEY_IGNORE)) == 1;
+			mCursor.close();
+			return value;
+		}
+		
+		//Log.w(LOG_TAG, "Received null cursor from query for " + packageName);
+		return false;		//null cursor error
 	}
 }

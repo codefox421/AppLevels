@@ -16,7 +16,7 @@
  * Filename:	AppLevelsService.java
  * Class:		AppLevelsService
  * 
- * Purpose:		Runs and manages a background alarm in support of the AppLevels
+ * Purpose:		Runs and manages a background service in support of the AppLevels
  * 				application. Deals with monitoring switches between top-level (user-
  * 				facing) applications, monitoring adjustments to media volume level,
  * 				writing/retrieving data from storage, and adjusting media volume
@@ -100,7 +100,7 @@ public class AppLevelsService extends Service {
 		database = new AppLevelsDBAdapter(this);
 		
 		// Make foreground service
-		Notification notification = buildNotification(null, 0);
+		Notification notification = notificationFactory(null, 0).build();
 		startForeground(NOTIF_ID, notification);
 		
 		Log.d(LOG_TAG, "onCreate method complete");
@@ -178,6 +178,8 @@ public class AppLevelsService extends Service {
     	String packageName = audioManager.isMusicActive() ? lastPackage : getFrontPackage();
     	if(packageName.equalsIgnoreCase("com.codefox421.applevels"))
     		return;		//cancel record if self is active
+    	if(database.getIgnoredBit(packageName))
+    		return;		//cancel record if app is ignored
     	
     	// Write new record to the database
     	Log.d(LOG_TAG, "Recording volume level (" + currentVolume + ") for " + packageName + "...");
@@ -188,7 +190,7 @@ public class AppLevelsService extends Service {
     	lastVolume = currentVolume;
     	
     	// Update notification
-    	Notification notification = buildNotification(packageName, lastVolume);
+    	Notification notification = notificationFactory(packageName, lastVolume).build();
     	notificationManager.notify(NOTIF_ID, notification);
 	}
 	
@@ -200,11 +202,16 @@ public class AppLevelsService extends Service {
 		if(!musicPlaying && !currentPackage.equalsIgnoreCase(lastPackage)) {
 
 			// Set the media volume to stored level (if exists)
-			boolean isManaged = initAppVolume(currentPackage);
+			boolean isIgnored = database.getIgnoredBit(currentPackage);
+			boolean isManaged = (isIgnored) ? true : initAppVolume(currentPackage);
 			
 			// Update the notification
-			Notification notification = buildNotification((isManaged ? currentPackage : null), lastVolume);
-			notificationManager.notify(NOTIF_ID, notification);
+			NotificationCompat.Builder notifBuilder = notificationFactory((isManaged ? currentPackage : null), lastVolume);
+			if (isIgnored) {
+				notifBuilder.setContentText(currentPackage + " " + getResources().getString(R.string.stat_ignored));
+				notifBuilder.setSmallIcon(R.drawable.ic_stat_inactive);
+			}
+			notificationManager.notify(NOTIF_ID, notifBuilder.build());
 			
 			lastPackage = currentPackage;
 		}
@@ -246,7 +253,7 @@ public class AppLevelsService extends Service {
 		return audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
 	}
 	
-	private Notification buildNotification(String packageName, int volume) {
+	private NotificationCompat.Builder notificationFactory(String packageName, int volume) {
 		
 		NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this);
 		
@@ -263,7 +270,7 @@ public class AppLevelsService extends Service {
 		mBuilder.setOngoing(true);
 		mBuilder.setWhen(0);
 		
-		return mBuilder.build();
+		return mBuilder;
 	}
 	
 	
